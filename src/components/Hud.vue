@@ -110,7 +110,7 @@ const visibleChat = computed(() => {
     })
 })
 
-const core = computed(() => CORE_DETAILS[props.player.character] || CORE_DETAILS.denja)
+const core = computed(() => CORE_DETAILS.denja)
 
 const hullPercent = computed(() => {
   return Math.max(0, Math.min(100, (props.player.health / CFG.MAX_HEALTH) * 100))
@@ -363,9 +363,7 @@ const reprintPercent = computed(() => {
       </div>
 
       <div class="pilot-badge">
-        <span class="core-icon">{{ core.badge }}</span>
-        <span class="core-name">{{ core.name }}</span>
-        <span class="core-maker">{{ core.maker }}</span>
+        <span class="core-name">STANDARD PLAYER</span>
       </div>
     </div>
 
@@ -381,10 +379,6 @@ const reprintPercent = computed(() => {
     <!-- Center Crosshair & Hit Markers -->
     <div v-if="player.alive" class="crosshair-container">
       <div class="crosshair" :class="{ 'hit-confirm': hitConfirm.show }">
-        <div class="ch-line ch-top"></div>
-        <div class="ch-line ch-bottom"></div>
-        <div class="ch-line ch-left"></div>
-        <div class="ch-line ch-right"></div>
         <div class="ch-dot"></div>
       </div>
       <!-- Damage direction: red arc toward the shooter, ~0.9s per hit -->
@@ -849,8 +843,8 @@ const reprintPercent = computed(() => {
 }
 
 .crosshair {
-  width: 28px;
-  height: 28px;
+  width: 8px;
+  height: 8px;
   position: relative;
   transition: transform 0.08s ease;
 }
@@ -859,51 +853,14 @@ const reprintPercent = computed(() => {
   transform: scale(1.4);
 }
 
-.ch-line {
-  position: absolute;
-  background: rgba(0, 240, 255, 0.8);
-}
-
-.crosshair.hit-confirm .ch-line {
-  background: #ff0055;
-}
-
-.ch-top {
-  top: 0;
-  left: 13px;
-  width: 2px;
-  height: 8px;
-}
-
-.ch-bottom {
-  bottom: 0;
-  left: 13px;
-  width: 2px;
-  height: 8px;
-}
-
-.ch-left {
-  top: 13px;
-  left: 0;
-  width: 8px;
-  height: 2px;
-}
-
-.ch-right {
-  top: 13px;
-  right: 0;
-  width: 8px;
-  height: 2px;
-}
-
 .ch-dot {
   position: absolute;
-  top: 12px;
-  left: 12px;
-  width: 4px;
-  height: 4px;
+  inset: 1px;
+  width: 6px;
+  height: 6px;
   background: #ffffff;
   border-radius: 50%;
+  box-shadow: 0 0 2px #000, 0 0 5px rgba(255,255,255,.5);
 }
 
 .damage-popup {

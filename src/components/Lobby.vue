@@ -1,22 +1,17 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { CORE_DETAILS, CORE_IDS } from '../game/config'
 import type { PublicRoom } from '../net/directory'
 
 const props = defineProps<{
   callsign: string
-  selectedCore: CoreId
   rooms: PublicRoom[]
   dirOnline: boolean
   inviteRoomCode?: string
   isConnecting?: boolean
 }>()
 
-type CoreId = (typeof CORE_IDS)[number]
-
 const emit = defineEmits<{
   (e: 'update:callsign', val: string): void
-  (e: 'update:selectedCore', val: CoreId): void
   (e: 'startSolo'): void
   (e: 'createPeerRoom'): void
   (e: 'joinPeerRoom', code: string): void
@@ -27,7 +22,6 @@ const roomCodeInput = ref('')
 const copied = ref(false)
 let copyTimer: any = null
 
-const core = computed(() => CORE_DETAILS[props.selectedCore])
 const callsignValid = computed(() => props.callsign.trim().length >= 2)
 const joinCode = computed(() =>
   roomCodeInput.value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8)
@@ -59,7 +53,7 @@ const copyInvite = async () => {
 </script>
 
 <template>
-  <div class="lobby" :style="{ '--core': core.color }">
+  <div class="lobby">
     <div class="wrap">
       <header class="top">
         <div class="brand">
@@ -102,26 +96,6 @@ const copyInvite = async () => {
           <button class="quiet" @click="randomizeCallsign">Random</button>
         </div>
 
-        <span class="label" style="margin-top: 20px">Atma Core</span>
-        <div class="cores" role="listbox" aria-label="Atma cores">
-          <button
-            v-for="cid in CORE_IDS"
-            :key="cid"
-            role="option"
-            :aria-selected="cid === selectedCore"
-            class="core"
-            :class="{ sel: cid === selectedCore }"
-            @click="emit('update:selectedCore', cid)"
-          >
-            <span class="core-b">{{ CORE_DETAILS[cid].badge }}</span>
-            <span class="core-n">{{ CORE_DETAILS[cid].name }}</span>
-            <span class="core-a">{{ CORE_DETAILS[cid].ability }}</span>
-          </button>
-        </div>
-        <p class="core-detail">
-          <strong>{{ core.name }}</strong> — {{ core.desc }}
-          <span class="muted">{{ core.maker }} · Q every {{ core.cooldown / 1000 }}s</span>
-        </p>
       </section>
 
       <section class="block play">
