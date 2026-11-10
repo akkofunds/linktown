@@ -1251,6 +1251,8 @@ function createSoftCloudTexture(): THREE.CanvasTexture {
 const fxProjectileCoreGeo = new THREE.CylinderGeometry(0.035, 0.035, 0.7, 8)
 const fxProjectileAuraGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.85, 8)
 const fxProjectileCoreMat = new THREE.MeshBasicMaterial({ color: 0xffffff })
+const fxTracerGeo = new THREE.CylinderGeometry(0.004, 0.014, 0.72, 5)
+const fxTracerMat = new THREE.MeshBasicMaterial({ color: 0xffe1a0, transparent: true, opacity: 0.72, depthWrite: false })
 const fxSparkGeo = new THREE.SphereGeometry(0.035, 4, 4)
 const fxShardGeo = new THREE.BoxGeometry(0.06, 0.28, 0.06)
 const fxDummy = new THREE.Object3D()
@@ -3471,7 +3473,7 @@ export class SceneRenderer {
       this.muzzleFlash.visible = true
       this.muzzleFlashTime = 0.06
     }
-    const color = superActive ? 0xffaa00 : 0x00f0ff
+    const color = superActive ? 0xffaa00 : 0xffd078
     this.armConduitMat.color.setHex(color)
     this.armCoreMat.color.setHex(color)
   }
@@ -3614,6 +3616,12 @@ export class SceneRenderer {
     const auraMesh = new THREE.Mesh(fxProjectileAuraGeo, fxAdditiveMat(color, 0.85))
     auraMesh.rotation.x = Math.PI / 2
     group.add(auraMesh)
+
+    // Short warm tracer tail; one shared geometry keeps the visual cheap.
+    const tracer = new THREE.Mesh(fxTracerGeo, fxTracerMat)
+    tracer.rotation.x = Math.PI / 2
+    tracer.position.z = 0.38
+    group.add(tracer)
 
     const dir = new THREE.Vector3(dx, dy, dz).normalize()
     const target = new THREE.Vector3().addVectors(group.position, dir)

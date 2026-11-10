@@ -338,10 +338,6 @@ export class GameEngine {
       this.keys[e.key.toLowerCase()] = true
       if (e.key.toLowerCase() === 'c') {
         this.toggleCrouch()
-      } else if (e.key.toLowerCase() === 'q') {
-        this.triggerClassAbility()
-      } else if (e.key.toLowerCase() === 'e') {
-        this.triggerSuper()
       } else if (e.key.toLowerCase() === 'r') {
         this.reloadGun()
       } else if (e.key === ' ') {
@@ -1404,6 +1400,10 @@ export class GameEngine {
   }
 
   private pushHudUpdate() {
+    if (this.reloadingUntil && Date.now() >= this.reloadingUntil) {
+      this.ammo = 17
+      this.reloadingUntil = 0
+    }
     const humanCount = [...this.players.values()].filter(p => !p.isBot).length
     const botCount = [...this.players.values()].filter(p => p.isBot).length
 
