@@ -7,9 +7,9 @@ export interface Spawn { x: number; y: number; z: number }
 export interface Poi { name: string; x: number; z: number }
 export interface MapData { floor: { w: number; d: number }; boxes: Box[]; spawns: Spawn[]; pois: Poi[]; seed: number }
 
-export const STATIC_MAP_ID = 'linktown-baseplate-1200'
+export const STATIC_MAP_ID = 'linktown-baseplate-1000'
 export const STATIC_MAP_SEED = 3049
-export const MAP_SIZE = 1200
+export const MAP_SIZE = 1000
 
 export function groundHeight(_x: number, _z: number, _seed?: number): number { return 0 }
 
@@ -29,10 +29,10 @@ export function getStaticMap(): MapData {
   }
   const pois: Poi[] = [
     { name: 'Center', x: 0, z: 0 },
-    { name: 'North Field', x: 0, z: -450 },
-    { name: 'South Field', x: 0, z: 450 },
-    { name: 'East Field', x: 450, z: 0 },
-    { name: 'West Field', x: -450, z: 0 },
+    { name: 'North Field', x: 0, z: -375 },
+    { name: 'South Field', x: 0, z: 375 },
+    { name: 'East Field', x: 375, z: 0 },
+    { name: 'West Field', x: -375, z: 0 },
   ]
   return { floor: { w: MAP_SIZE, d: MAP_SIZE }, boxes, spawns, pois, seed: STATIC_MAP_SEED }
 }

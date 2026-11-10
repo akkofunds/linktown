@@ -1500,6 +1500,8 @@ export class GameEngine {
       tickRate: 20,
       ammo: this.ammo,
       reloading: this.reloadingUntil > Date.now(),
+      speed: Math.hypot(this.moveVx, this.moveVz),
+      airborne: this.localPlayer.y > 1.65,
       nearestPilot
     }
 

@@ -7,7 +7,7 @@ export const CFG = {
   MAX_PLAYERS: 16,          // WebRTC P2P mesh room limit
   VIS_RADIUS: MAP_SIZE * 1.5,          // Distance culling limit
   PLAYER_SPEED: 36,         // units/sec walk
-  RUN_SPEED: 60,            // fast arena pace, matching the 1.2km map scale
+  RUN_SPEED: 60,            // fast arena pace
   GROUND_ACCEL: 180,        // units/sec²; ramps to run speed over about 0.33s
   AIR_ACCEL: 190,           // strong directional air control for strafing
   AIR_FRICTION: 0,
@@ -43,8 +43,8 @@ export const CFG = {
   PORTAL_RADIUS: 2.5,       // Step-in trigger radius at each mouth
   ANCHOR_LIFETIME: 30000,   // Telepotu relay anchor lifetime (ms)
   RECALL_COST: 15,          // Nanite mass spent to warp back to anchor
-  JUMP_SPEED: 22,           // Base vertical jump velocity
-  GRAVITY: 32,              // Gravity units/sec^2
+  JUMP_SPEED: 11,           // Grounded jump arc, about 1.5 units high
+  GRAVITY: 40,              // Stronger gravity for a quick, grounded landing
   SUPER_JUMP_SPEED: 44,     // High jump velocity (~10x height)
   SUPER_JUMP_COST: 20,      // Nanite mass spent per Super Jump
   DMG_SINGLE: 20,           // Base hitscan damage
