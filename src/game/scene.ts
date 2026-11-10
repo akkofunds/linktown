@@ -1584,8 +1584,10 @@ export class SceneRenderer {
   private setupRobotArm() {
     this.robotArm = new THREE.Group()
     this.robotArm.name = 'robotArm'
-    this.robotArm.position.set(0.28, -0.22, -0.42)
-    this.robotArm.rotation.set(0.05, -0.06, -0.04)
+    // CS-style first-person placement (closer, higher, slight tilt)
+    this.robotArm.position.set(0.24, -0.26, -0.44)
+    this.robotArm.rotation.set(0.10, -0.14, -0.05)
+    this.robotArm.scale.setScalar(1.18)
 
     const armMetalMat = new THREE.MeshStandardMaterial({
       color: 0x181e26,
@@ -1615,7 +1617,7 @@ export class SceneRenderer {
     this.armConduitMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff })
     this.armCoreMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff })
 
-    // 1. Sleek Tapered Forearm Chassis (8-sided faceted profile instead of flat box)
+    // ── Forearm (kept simple, mostly hidden behind Glock) ────────────
     const sleeveGeo = new THREE.CylinderGeometry(0.046, 0.058, 0.32, 8)
     const sleeve = new THREE.Mesh(sleeveGeo, armMetalMat)
     sleeve.rotation.x = Math.PI / 2
@@ -1623,169 +1625,139 @@ export class SceneRenderer {
     sleeve.position.set(0, 0, 0.12)
     this.robotArm.add(sleeve)
 
-    // Dorsal armor carapace
     const dorsalCarapace = new THREE.Mesh(new THREE.BoxGeometry(0.095, 0.016, 0.26), armCarapaceMat)
     dorsalCarapace.position.set(0, 0.046, 0.12)
     this.robotArm.add(dorsalCarapace)
 
-    // Lateral heat-sink cooling fins on forearm flanks
-    for (let f = -1; f <= 1; f += 2) {
-      for (let i = 0; i < 3; i++) {
-        const fin = new THREE.Mesh(new THREE.BoxGeometry(0.005, 0.018, 0.04), armJointMat)
-        fin.position.set(f * 0.056, 0.01, 0.05 + i * 0.06)
-        this.robotArm.add(fin)
-      }
-    }
-
-    // Glowing energy conduits recessed into channels along forearm
-    const conduitGeo = new THREE.CylinderGeometry(0.006, 0.006, 0.28, 8)
-    const leftConduit = new THREE.Mesh(conduitGeo, this.armConduitMat)
-    leftConduit.rotation.x = Math.PI / 2
-    leftConduit.position.set(-0.034, 0.048, 0.12)
-    this.robotArm.add(leftConduit)
-
-    const rightConduit = new THREE.Mesh(conduitGeo, this.armConduitMat)
-    rightConduit.rotation.x = Math.PI / 2
-    rightConduit.position.set(0.034, 0.048, 0.12)
-    this.robotArm.add(rightConduit)
-
-    // Dual hydraulic wrist actuators on underside flanks
-    for (let s = -1; s <= 1; s += 2) {
-      const cylinderCase = new THREE.Mesh(new THREE.CylinderGeometry(0.007, 0.007, 0.12, 8), armMetalMat)
-      cylinderCase.rotation.x = Math.PI / 2
-      cylinderCase.position.set(s * 0.040, -0.028, 0.04)
-      this.robotArm.add(cylinderCase)
-
-      const pistonRod = new THREE.Mesh(new THREE.CylinderGeometry(0.0035, 0.0035, 0.09, 8), chromePinMat)
-      pistonRod.rotation.x = Math.PI / 2
-      pistonRod.position.set(s * 0.040, -0.028, -0.03)
-      this.robotArm.add(pistonRod)
-    }
-
-    // 2. Articulated Universal Wrist Gimbal
-    const wristRing = new THREE.Mesh(new THREE.TorusGeometry(0.042, 0.0065, 8, 20), armJointMat)
-    wristRing.position.set(0, 0, -0.042)
-    this.robotArm.add(wristRing)
-
-    const wristHub = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.028, 0.062, 12), armMetalMat)
-    wristHub.rotation.z = Math.PI / 2
-    wristHub.position.set(0, 0, -0.042)
-    this.robotArm.add(wristHub)
-
-    for (let s = -1; s <= 1; s += 2) {
-      const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.009, 0.009, 0.006, 8), chromePinMat)
-      cap.rotation.z = Math.PI / 2
-      cap.position.set(s * 0.033, 0, -0.042)
-      this.robotArm.add(cap)
-    }
-
-    // 3. Ergonomic Contoured Palm Chassis
-    const palmGeo = new THREE.CylinderGeometry(0.045, 0.040, 0.034, 16)
-    const palm = new THREE.Mesh(palmGeo, armMetalMat)
-    palm.rotation.x = Math.PI / 2
-    palm.scale.set(1.0, 1.25, 0.65)
-    palm.position.set(0, 0.002, -0.100)
-    this.robotArm.add(palm)
-
-    // Dorsal hand armor carapace
-    const handCarapace = new THREE.Mesh(new THREE.BoxGeometry(0.080, 0.010, 0.065), armCarapaceMat)
-    handCarapace.position.set(0, 0.022, -0.098)
-    this.robotArm.add(handCarapace)
-
-    // Nanite tendon conduits fanning across dorsal palm to knuckle hubs
-    const knuckleXs = [0.033, 0.011, -0.011, -0.033]
-    knuckleXs.forEach(kx => {
-      const tendon = new THREE.Mesh(new THREE.CylinderGeometry(0.0022, 0.0022, 0.055, 6), this.armConduitMat)
-      tendon.rotation.x = Math.PI / 2
-      tendon.rotation.z = -kx * 1.8
-      tendon.position.set(kx * 0.6, 0.024, -0.102)
-      this.robotArm.add(tendon)
+    // ── CS:GO-style Glock 19 ─────────────────────────────────────────
+    const glockSlideMat = new THREE.MeshStandardMaterial({
+      color: 0x3d434a, roughness: 0.38, metalness: 0.65
+    })
+    const glockFrameMat = new THREE.MeshStandardMaterial({
+      color: 0x1c1f24, roughness: 0.62, metalness: 0.18
+    })
+    const glockGripMat = new THREE.MeshStandardMaterial({
+      color: 0x14171b, roughness: 0.78, metalness: 0.08
+    })
+    const glockSightMat = new THREE.MeshStandardMaterial({
+      color: 0x0a0c0e, roughness: 0.35, metalness: 0.4
+    })
+    const glockSerrationMat = new THREE.MeshStandardMaterial({
+      color: 0x2a2f36, roughness: 0.45, metalness: 0.55
     })
 
-    // 4. Central Heavy Pulse Cannon Assembly (Nanite morph: extends on fire)
     const blasterGrp = new THREE.Group()
-    blasterGrp.position.set(0, 0.004, -0.11)
+    blasterGrp.position.set(0.01, -0.012, -0.095)
+    blasterGrp.rotation.set(0.05, 0.02, 0.04)
 
-    // Simple low-poly Glock 19 silhouette (slide, barrel, grip, trigger guard).
-    const glockSlideMat = new THREE.MeshStandardMaterial({ color: 0x77838b, roughness: 0.56, metalness: 0.3 })
-    const glockGripMat = new THREE.MeshStandardMaterial({ color: 0x303840, roughness: 0.82, metalness: 0.12 })
-    const glockSightMat = new THREE.MeshBasicMaterial({ color: 0xffe2a5 })
-    // Beveled, narrowed muzzle profile reads as a pistol slide in first person
-    // while staying a small handful of meshes for integrated graphics.
-    const slideShape = new THREE.Shape()
-    slideShape.moveTo(-0.034, -0.092)
-    slideShape.lineTo(0.034, -0.092)
-    slideShape.lineTo(0.034, 0.060)
-    slideShape.lineTo(0.024, 0.102)
-    slideShape.lineTo(-0.024, 0.102)
-    slideShape.lineTo(-0.034, 0.060)
-    slideShape.closePath()
-    const slideGeo = new THREE.ExtrudeGeometry(slideShape, {
-      depth: 0.038, bevelEnabled: true, bevelSegments: 2,
-      steps: 1, bevelSize: 0.002, bevelThickness: 0.002
-    })
-    slideGeo.translate(0, 0, -0.019)
-    slideGeo.rotateX(-Math.PI / 2)
-    const pistolSlide = new THREE.Mesh(slideGeo, glockSlideMat)
-    pistolSlide.position.set(0, 0.015, -0.032)
-    blasterGrp.add(pistolSlide)
-    const slideRail = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.006, 0.17), chromePinMat)
-    slideRail.position.set(0, 0.045, -0.032)
-    blasterGrp.add(slideRail)
-    for (const z of [-0.12, 0.055]) {
-      const sight = new THREE.Mesh(new THREE.BoxGeometry(0.009, 0.006, 0.012), glockSightMat)
-      sight.position.set(0, 0.043, z)
-      blasterGrp.add(sight)
+    // === SLIDE ===
+    const slide = new THREE.Mesh(new THREE.BoxGeometry(0.054, 0.036, 0.178), glockSlideMat)
+    slide.position.set(0, 0.030, -0.015)
+    blasterGrp.add(slide)
+
+    const slideTop = new THREE.Mesh(new THREE.BoxGeometry(0.048, 0.006, 0.170), glockSerrationMat)
+    slideTop.position.set(0, 0.050, -0.015)
+    blasterGrp.add(slideTop)
+
+    for (let i = 0; i < 6; i++) {
+      const ser = new THREE.Mesh(new THREE.BoxGeometry(0.056, 0.014, 0.004), glockSerrationMat)
+      ser.position.set(0, 0.032, 0.055 - i * 0.009)
+      blasterGrp.add(ser)
     }
-    const pistolBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.19, 10), chromePinMat)
-    pistolBarrel.rotation.x = Math.PI / 2
-    pistolBarrel.position.set(0, 0.002, -0.075)
-    blasterGrp.add(pistolBarrel)
-    const muzzle = new THREE.Mesh(new THREE.CylinderGeometry(0.021, 0.021, 0.008, 12), armMetalMat)
+    for (let i = 0; i < 4; i++) {
+      const ser = new THREE.Mesh(new THREE.BoxGeometry(0.056, 0.012, 0.0035), glockSerrationMat)
+      ser.position.set(0, 0.032, -0.070 - i * 0.008)
+      blasterGrp.add(ser)
+    }
+
+    // === BARREL + MUZZLE ===
+    const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.0085, 0.0085, 0.062, 12), glockSlideMat)
+    barrel.rotation.x = Math.PI / 2
+    barrel.position.set(0, 0.024, -0.112)
+    blasterGrp.add(barrel)
+
+    const muzzle = new THREE.Mesh(new THREE.CylinderGeometry(0.013, 0.013, 0.012, 12), glockFrameMat)
     muzzle.rotation.x = Math.PI / 2
-    muzzle.position.set(0, 0.002, -0.173)
+    muzzle.position.set(0, 0.024, -0.145)
     blasterGrp.add(muzzle)
-    const receiver = new THREE.Mesh(new THREE.BoxGeometry(0.064, 0.032, 0.126), armCarapaceMat)
-    receiver.position.set(0, -0.026, 0.012)
-    blasterGrp.add(receiver)
-    const pistolGrip = new THREE.Mesh(new THREE.BoxGeometry(0.064, 0.118, 0.076), glockGripMat)
-    pistolGrip.position.set(0, -0.080, 0.039)
-    pistolGrip.rotation.x = -0.24
-    blasterGrp.add(pistolGrip)
-    const gripPanel = new THREE.Mesh(new THREE.BoxGeometry(0.004, 0.084, 0.058), armJointMat)
-    gripPanel.position.set(0.033, -0.080, 0.041)
-    gripPanel.rotation.x = -0.24
-    blasterGrp.add(gripPanel)
-    const trigger = new THREE.Mesh(new THREE.BoxGeometry(0.006, 0.03, 0.008), accentGoldMat)
-    trigger.position.set(0, -0.035, 0.002)
+
+    // === FRAME ===
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(0.050, 0.032, 0.118), glockFrameMat)
+    frame.position.set(0, 0.004, 0.018)
+    blasterGrp.add(frame)
+
+    const dustCover = new THREE.Mesh(new THREE.BoxGeometry(0.048, 0.014, 0.055), glockFrameMat)
+    dustCover.position.set(0, 0.010, -0.070)
+    blasterGrp.add(dustCover)
+
+    // === TRIGGER ===
+    const guard = new THREE.Mesh(
+      new THREE.TorusGeometry(0.023, 0.005, 6, 16, Math.PI * 1.2),
+      glockFrameMat
+    )
+    guard.rotation.z = Math.PI
+    guard.position.set(0, -0.016, 0.008)
+    blasterGrp.add(guard)
+
+    const trigger = new THREE.Mesh(new THREE.BoxGeometry(0.006, 0.024, 0.014), glockFrameMat)
+    trigger.position.set(0, -0.010, 0.004)
     blasterGrp.add(trigger)
-    const triggerGuard = new THREE.Mesh(new THREE.TorusGeometry(0.024, 0.004, 5, 12, Math.PI), chromePinMat)
-    triggerGuard.position.set(0, -0.038, 0.012)
-    triggerGuard.rotation.z = Math.PI
-    blasterGrp.add(triggerGuard)
 
-    const glowRingGeo = new THREE.TorusGeometry(0.030, 0.0055, 8, 16)
-    const glowRing = new THREE.Mesh(glowRingGeo, this.armCoreMat)
-    glowRing.position.z = -0.025
-    glowRing.visible = false
-    blasterGrp.add(glowRing)
+    // === GRIP ===
+    const grip = new THREE.Mesh(new THREE.BoxGeometry(0.048, 0.112, 0.070), glockGripMat)
+    grip.position.set(0, -0.072, 0.040)
+    grip.rotation.x = -0.28
+    blasterGrp.add(grip)
 
-    const apertureRing = new THREE.Mesh(new THREE.TorusGeometry(0.022, 0.004, 8, 14), accentGoldMat)
-    apertureRing.position.z = -0.096
-    apertureRing.visible = false
-    blasterGrp.add(apertureRing)
+    const gripL = new THREE.Mesh(new THREE.BoxGeometry(0.003, 0.090, 0.055), glockSerrationMat)
+    gripL.position.set(-0.026, -0.070, 0.042)
+    gripL.rotation.x = -0.28
+    blasterGrp.add(gripL)
+    const gripR = new THREE.Mesh(new THREE.BoxGeometry(0.003, 0.090, 0.055), glockSerrationMat)
+    gripR.position.set(0.026, -0.070, 0.042)
+    gripR.rotation.x = -0.28
+    blasterGrp.add(gripR)
+
+    for (let i = 0; i < 5; i++) {
+      const ridge = new THREE.Mesh(new THREE.BoxGeometry(0.050, 0.0035, 0.058), glockFrameMat)
+      ridge.position.set(0, -0.040 - i * 0.016, 0.043)
+      ridge.rotation.x = -0.28
+      blasterGrp.add(ridge)
+    }
+
+    const mag = new THREE.Mesh(new THREE.BoxGeometry(0.042, 0.016, 0.058), glockGripMat)
+    mag.position.set(0, -0.125, 0.048)
+    mag.rotation.x = -0.28
+    blasterGrp.add(mag)
+
+    // === SIGHTS ===
+    const rearSightBase = new THREE.Mesh(new THREE.BoxGeometry(0.030, 0.010, 0.014), glockSightMat)
+    rearSightBase.position.set(0, 0.052, 0.058)
+    blasterGrp.add(rearSightBase)
+    const rearL = new THREE.Mesh(new THREE.BoxGeometry(0.007, 0.012, 0.010), glockSightMat)
+    rearL.position.set(-0.012, 0.060, 0.058)
+    blasterGrp.add(rearL)
+    const rearR = new THREE.Mesh(new THREE.BoxGeometry(0.007, 0.012, 0.010), glockSightMat)
+    rearR.position.set(0.012, 0.060, 0.058)
+    blasterGrp.add(rearR)
+
+    const frontSight = new THREE.Mesh(new THREE.BoxGeometry(0.006, 0.016, 0.010), glockSightMat)
+    frontSight.position.set(0, 0.054, -0.090)
+    blasterGrp.add(frontSight)
+    const frontPost = new THREE.Mesh(new THREE.BoxGeometry(0.004, 0.008, 0.006), glockSightMat)
+    frontPost.position.set(0, 0.064, -0.090)
+    blasterGrp.add(frontPost)
 
     this.robotArm.add(blasterGrp)
     this.blasterBarrel = blasterGrp
 
-    // Central plasma reactor sphere
-    const core = new THREE.Mesh(new THREE.SphereGeometry(0.003, 6, 6), armJointMat)
+    // Keep for morph/shield code
+    const core = new THREE.Mesh(new THREE.SphereGeometry(0.002, 6, 6), armJointMat)
     core.position.set(0, 0.004, -0.08)
+    core.visible = false
     this.robotArm.add(core)
     this.blasterCore = core
 
-    // Shield projector lens: blooms on the open palm when the barrier is up
-    // (barrel sinks away — the hand stops being a gun).
     this.shieldLensMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff })
     const lens = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.027, 0.014, 16), this.shieldLensMat)
     lens.rotation.x = Math.PI / 2
@@ -4101,14 +4073,14 @@ export class SceneRenderer {
     const bobX = Math.cos(this.bobTimer) * 0.005 * (1 - this.armRest * 0.8)
     const bobY = Math.sin(this.bobTimer * 2) * 0.004 * (1 - this.armRest * 0.8)
     this.robotArm.position.set(
-      0.28 + bobX,
-      -0.22 + bobY - this.armRest * 0.09 + this.shieldPose * 0.07,
-      -0.42 + this.armRecoil + this.armRest * 0.05 - this.shieldPose * 0.05
+      0.24 + bobX,
+      -0.26 + bobY - this.armRest * 0.09 + this.shieldPose * 0.07,
+      -0.44 + this.armRecoil + this.armRest * 0.05 - this.shieldPose * 0.05
     )
     this.robotArm.rotation.set(
-      0.05 - this.armRecoilRot + this.armRest * 0.42 - this.shieldPose * 0.30,
-      -0.06 + this.armRest * 0.10,
-      -0.04 + bobX * 2 - this.armRest * 0.06
+      0.10 - this.armRecoilRot + this.armRest * 0.42 - this.shieldPose * 0.30,
+      -0.14 + this.armRest * 0.10,
+      -0.05 + bobX * 2 - this.armRest * 0.06
     )
 
     // Muzzle flash duration
