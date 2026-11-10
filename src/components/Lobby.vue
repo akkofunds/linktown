@@ -168,12 +168,12 @@ const copyInvite = async () => {
 
       <details class="manual">
         <summary>Controls &amp; rules</summary>
-        <p><kbd>WASD</kbd> move · <kbd>Mouse</kbd> aim · <kbd>Click</kbd> fire · <kbd>Q</kbd> core · <kbd>E</kbd> super · <kbd>R</kbd> shield · <kbd>Space</kbd> jump · <kbd>C</kbd> crouch · <kbd>Tab</kbd> scoreboard</p>
-        <p class="muted">Shots, jumps and abilities spend hull. After 3s of calm, hull rebuilds — 3× faster while crouched.</p>
+        <p><kbd>WASD</kbd> move · <kbd>Mouse</kbd> aim · <kbd>Click</kbd> fire · <kbd>R</kbd> reload · <kbd>Hold Space</kbd> bhop · <kbd>Tab</kbd> scoreboard</p>
+        <p class="muted">One Glock 19 · infinite magazines · large fenced baseplate · up to 16 players per room. Start, then click the game and use WASD.</p>
       </details>
 
       <footer class="foot">
-        <a href="https://github.com/besoeasy/LINKTOWN" target="_blank" rel="noopener">Open source on GitHub</a>
+        <a href="https://github.com/akkofunds/linktown" target="_blank" rel="noopener">Open this game on GitHub</a>
       </footer>
     </div>
   </div>

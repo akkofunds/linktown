@@ -3,6 +3,7 @@ import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { CFG, CORE_DETAILS, type CoreId } from '../game/config'
 import { sound } from '../game/audio'
 import type { PlayerState, KillMsg, TelemetryData, ChatMsg } from '../net/types'
+import { MAP_SIZE } from '../game/map'
 
 const props = defineProps<{
   player: PlayerState
@@ -18,6 +19,7 @@ const props = defineProps<{
   localPlayerId?: number
   hitDir?: { angle: number; at: number } | null
   chatMessages?: ChatMsg[]
+  playersOnMap?: PlayerState[]
 }>()
 
 const emit = defineEmits<{
@@ -239,6 +241,12 @@ const respawnMs = computed(() => {
 })
 
 const respawnSecs = computed(() => Math.ceil(respawnMs.value / 1000))
+const mapDots = computed(() => (props.playersOnMap ?? []).filter(p => p.alive).map(p => ({
+  id: p.id,
+  x: 10 + (Math.max(-MAP_SIZE / 2, Math.min(MAP_SIZE / 2, p.x)) / MAP_SIZE + 0.5) * 100,
+  y: 10 + (Math.max(-MAP_SIZE / 2, Math.min(MAP_SIZE / 2, p.z)) / MAP_SIZE + 0.5) * 100,
+  self: p.id === props.player.id
+})))
 
 const reprintPercent = computed(() => {
   const total = CFG.RESPAWN_DELAY
@@ -248,6 +256,20 @@ const reprintPercent = computed(() => {
 
 <template>
   <div class="hud-overlay" :class="{ 'hit-vignette': hitFlash, 'low-hull': lowHull }">
+    <div class="arena-minimap" aria-label="Player minimap">
+      <span class="minimap-title">LINKTOWN · 1.2 KM</span>
+      <svg viewBox="0 0 120 120" role="img" aria-label="Arena player positions">
+        <rect x="10" y="10" width="100" height="100" rx="2" class="minimap-field" />
+        <line x1="60" y1="10" x2="60" y2="110" class="minimap-grid" />
+        <line x1="10" y1="60" x2="110" y2="60" class="minimap-grid" />
+        <circle v-for="dot in mapDots" :key="dot.id" :cx="dot.x" :cy="dot.y" :r="dot.self ? 3.2 : 2.4" :class="dot.self ? 'minimap-self' : 'minimap-player'" />
+      </svg>
+    </div>
+    <div class="glock-readout">
+      <span>GLOCK 19</span>
+      <strong>{{ telemetry?.reloading ? 'RELOAD' : `${telemetry?.ammo ?? 17} / 17` }}</strong>
+      <small>R · RELOAD</small>
+    </div>
     <!-- Critical Hull banner pulse -->
     <!-- Blueish Kinetic Shield Overlay (when Shield is active) -->
     <div
@@ -310,7 +332,7 @@ const reprintPercent = computed(() => {
         <div class="telem-chip">
           <span class="telem-label">PILOTS</span>
           <span class="telem-val text-cyan">
-            {{ telemetry?.mode === 'solo' ? `${telemetry.humanPlayers || 1}P + ${telemetry.botPlayers || 7}B` : `${telemetry?.connectedPlayers || 1} / 16` }}
+            {{ telemetry?.mode === 'solo' ? `${telemetry.humanPlayers || 1}P` : `${telemetry?.connectedPlayers || 1} / 16` }}
           </span>
         </div>
         <div class="telem-chip">
@@ -584,6 +606,27 @@ const reprintPercent = computed(() => {
   transition: box-shadow 0.15s ease;
   user-select: none;
 }
+
+.arena-minimap {
+  position: absolute;
+  left: 18px;
+  top: 112px;
+  width: 142px;
+  padding: 6px;
+  border: 1px solid rgba(112, 225, 235, .48);
+  border-radius: 5px;
+  background: rgba(5, 12, 18, .76);
+  box-shadow: 0 3px 18px rgba(0, 0, 0, .3);
+}
+.minimap-title { display: block; padding: 2px 4px 3px; color: #9beaf0; font: 700 10px monospace; letter-spacing: .08em; }
+.arena-minimap svg { display: block; width: 100%; }
+.minimap-field { fill: rgba(32, 47, 53, .92); stroke: #71cbd3; stroke-width: 1.2; }
+.minimap-grid { stroke: rgba(180, 220, 225, .18); stroke-width: .5; }
+.minimap-player { fill: #f8fbff; stroke: #17232a; stroke-width: .7; }
+.minimap-self { fill: #63f4b4; stroke: white; stroke-width: 1; }
+.glock-readout { position: absolute; right: 22px; bottom: 20px; display: grid; gap: 2px; min-width: 120px; padding: 9px 12px; border: 1px solid rgba(112,225,235,.45); border-radius: 4px; background: rgba(5,12,18,.76); text-align: right; font: 700 11px monospace; letter-spacing: .08em; }
+.glock-readout strong { color: #fff; font-size: 19px; }
+.glock-readout small { color: #9beaf0; font-size: 9px; }
 
 .hit-vignette {
   box-shadow: inset 0 0 100px rgba(239, 68, 68, 0.7);
