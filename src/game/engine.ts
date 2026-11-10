@@ -118,6 +118,8 @@ export class GameEngine {
   private lastFrameTime = performance.now()
   private lastHudUpdate = 0
   private vy = 0
+  private moveVx = 0
+  private moveVz = 0
   private padBoostUntil = 0
   private lastShotTime = 0
   private lastDryFire = 0
@@ -335,18 +337,19 @@ export class GameEngine {
       // Chat box owns the keyboard while typing (no WASD runaway, no Q/E/R).
       if ((e.target as HTMLElement)?.tagName === 'INPUT') return
       if (e.code === 'Space') e.preventDefault()
-      this.keys[e.key.toLowerCase()] = true
+      const key = e.code === 'Space' ? 'space' : e.key.toLowerCase()
+      this.keys[key] = true
       if (e.key.toLowerCase() === 'c') {
         this.toggleCrouch()
       } else if (e.key.toLowerCase() === 'r') {
         this.reloadGun()
-      } else if (e.key === ' ') {
+      } else if (e.code === 'Space') {
         this.triggerJump()
       }
     })
 
     on(window, 'keyup', (e: KeyboardEvent) => {
-      this.keys[e.key.toLowerCase()] = false
+      this.keys[e.code === 'Space' ? 'space' : e.key.toLowerCase()] = false
     })
 
     on(window, 'mousemove', (e: MouseEvent) => {
@@ -1236,8 +1239,8 @@ export class GameEngine {
       }
 
       const len = Math.hypot(mx, mz)
-      // RX-11 always runs — no sprint key, no modifiers.
-      const isRunning = true
+      const grounded = this.isOnGround(this.localPlayer)
+      const isRunning = len > 0
       let speed = CFG.RUN_SPEED
 
       if (this.localPlayer.superActive) {
@@ -1253,13 +1256,36 @@ export class GameEngine {
       }
 
       if (len > 0) {
-        mx = (mx / len) * speed * dt
-        mz = (mz / len) * speed * dt
+        const wishX = mx / len
+        const wishZ = mz / len
+        const accel = grounded ? CFG.GROUND_ACCEL : CFG.AIR_ACCEL
+        const alongWish = this.moveVx * wishX + this.moveVz * wishZ
+        const addSpeed = Math.max(0, speed - alongWish)
+        const accelStep = Math.min(addSpeed, accel * dt)
+        this.moveVx += wishX * accelStep
+        this.moveVz += wishZ * accelStep
+      }
+      if (!grounded) {
+        const airDecay = Math.max(0, 1 - CFG.AIR_FRICTION * dt)
+        this.moveVx *= airDecay
+        this.moveVz *= airDecay
+      } else if (len === 0) {
+        const groundDecay = Math.max(0, 1 - CFG.GROUND_FRICTION * dt)
+        this.moveVx *= groundDecay
+        this.moveVz *= groundDecay
+      }
+
+      if (len > 0 || Math.hypot(this.moveVx, this.moveVz) > 0.15) {
+        mx = this.moveVx * dt
+        mz = this.moveVz * dt
         const col = resolveCollision(this.localPlayer.x + mx, this.localPlayer.y, this.localPlayer.z + mz, this.map, this.nearbyBoxes)
+        if (Math.abs(col.x - (this.localPlayer.x + mx)) > 0.001) this.moveVx = 0
+        if (Math.abs(col.z - (this.localPlayer.z + mz)) > 0.001) this.moveVz = 0
         this.localPlayer.x = col.x
         this.localPlayer.z = col.z
-        this.lastMoveTime = Date.now()
-        sound.startFootsteps(isRunning)
+        if (len > 0) this.lastMoveTime = Date.now()
+        if (Math.hypot(this.moveVx, this.moveVz) > 1) sound.startFootsteps(isRunning)
+        else sound.stopFootsteps()
       } else {
         sound.stopFootsteps()
         // Auto-crouch after 5s of no WASD movement
@@ -1292,7 +1318,7 @@ export class GameEngine {
         this.vy = 0
       }
       // Hold Space to bunny-hop as soon as the chassis lands; there is no hop limit.
-      if (this.keys[' '] && this.isOnGround(this.localPlayer)) this.triggerJump()
+      if (this.keys['space'] && this.isOnGround(this.localPlayer)) this.triggerJump()
 
       // Dynamic Jump Pad Trigger Check
       const now = Date.now()

@@ -1707,29 +1707,40 @@ export class SceneRenderer {
     blasterGrp.position.set(0, 0.004, -0.11)
 
     // Simple low-poly Glock 19 silhouette (slide, barrel, grip, trigger guard).
-    const glockSlideMat = new THREE.MeshStandardMaterial({ color: 0x56636c, roughness: 0.62, metalness: 0.24 })
+    const glockSlideMat = new THREE.MeshStandardMaterial({ color: 0x71808a, roughness: 0.56, metalness: 0.3 })
     const glockSightMat = new THREE.MeshBasicMaterial({ color: 0xffe2a5 })
-    const pistolSlide = new THREE.Mesh(new THREE.BoxGeometry(0.066, 0.052, 0.18), glockSlideMat)
-    pistolSlide.position.set(0, 0.012, -0.025)
+    const pistolSlide = new THREE.Mesh(new THREE.BoxGeometry(0.078, 0.058, 0.205), glockSlideMat)
+    pistolSlide.position.set(0, 0.015, -0.032)
     blasterGrp.add(pistolSlide)
-    const slideRail = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.004, 0.15), armMetalMat)
-    slideRail.position.set(0, 0.041, -0.025)
+    const slideRail = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.006, 0.17), chromePinMat)
+    slideRail.position.set(0, 0.045, -0.032)
     blasterGrp.add(slideRail)
-    for (const z of [-0.098, 0.045]) {
+    for (const z of [-0.12, 0.055]) {
       const sight = new THREE.Mesh(new THREE.BoxGeometry(0.009, 0.006, 0.012), glockSightMat)
       sight.position.set(0, 0.043, z)
       blasterGrp.add(sight)
     }
-    const pistolBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.16, 8), armJointMat)
+    const pistolBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.19, 10), chromePinMat)
     pistolBarrel.rotation.x = Math.PI / 2
-    pistolBarrel.position.set(0, 0.004, -0.055)
+    pistolBarrel.position.set(0, 0.002, -0.075)
     blasterGrp.add(pistolBarrel)
-    const pistolGrip = new THREE.Mesh(new THREE.BoxGeometry(0.058, 0.104, 0.07), armMetalMat)
-    pistolGrip.position.set(0, -0.064, 0.025)
-    pistolGrip.rotation.x = -0.18
+    const muzzle = new THREE.Mesh(new THREE.CylinderGeometry(0.021, 0.021, 0.008, 12), armMetalMat)
+    muzzle.rotation.x = Math.PI / 2
+    muzzle.position.set(0, 0.002, -0.173)
+    blasterGrp.add(muzzle)
+    const pistolGrip = new THREE.Mesh(new THREE.BoxGeometry(0.064, 0.118, 0.076), armCarapaceMat)
+    pistolGrip.position.set(0, -0.066, 0.025)
+    pistolGrip.rotation.x = -0.24
     blasterGrp.add(pistolGrip)
-    const triggerGuard = new THREE.Mesh(new THREE.TorusGeometry(0.022, 0.004, 5, 12, Math.PI), chromePinMat)
-    triggerGuard.position.set(0, -0.035, 0.035)
+    const gripPanel = new THREE.Mesh(new THREE.BoxGeometry(0.004, 0.082, 0.054), armJointMat)
+    gripPanel.position.set(0.033, -0.066, 0.027)
+    gripPanel.rotation.x = -0.24
+    blasterGrp.add(gripPanel)
+    const trigger = new THREE.Mesh(new THREE.BoxGeometry(0.006, 0.03, 0.008), accentGoldMat)
+    trigger.position.set(0, -0.035, 0.002)
+    blasterGrp.add(trigger)
+    const triggerGuard = new THREE.Mesh(new THREE.TorusGeometry(0.024, 0.004, 5, 12, Math.PI), chromePinMat)
+    triggerGuard.position.set(0, -0.038, 0.012)
     triggerGuard.rotation.z = Math.PI
     blasterGrp.add(triggerGuard)
 
@@ -3053,7 +3064,9 @@ export class SceneRenderer {
 
   private createPlayerMesh(p: PlayerState): THREE.Group {
     const group = new THREE.Group()
-    const core = CORE_DETAILS[p.character] || CORE_DETAILS.denja
+    // Everyone uses one shared avatar and color so class changes cannot alter
+    // another player's silhouette or apparent size.
+    const core = CORE_DETAILS.denja
 
     // ── High-Fidelity Materials for RX-11 Chassis ─────────────────────────────
     // 1-3. Armor (dark carbon-nanite), trim (gunmetal) and joints (dark

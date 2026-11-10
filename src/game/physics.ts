@@ -128,12 +128,14 @@ export function raycastPlayers(
     const py = p.y + CFG.PLAYER_HEIGHT * 0.5
     const cx = p.x - ox, cy = py - oy, cz = p.z - oz
     const t = cx * dx + cy * dy + cz * dz
-    if (t < 0 || t > 140) continue
+    if (t < 0 || t > 700) continue
     const ex = ox + t * dx - p.x
     const ey = oy + t * dy - py
     const ez = oz + t * dz - p.z
-    const r2 = ex * ex + ey * ey * 0.4 + ez * ez
-    if (r2 < 0.6 * 0.6 && (!best || t < best.t)) {
+    // A generous upright capsule approximates the visible player and keeps
+    // shots forgiving at distance without changing the avatar's world scale.
+    const r2 = ex * ex + ez * ez
+    if (r2 < 0.72 * 0.72 && Math.abs(ey) < CFG.PLAYER_HEIGHT * 0.5 + 0.2 && (!best || t < best.t)) {
       best = { id: p.id, t }
     }
   }
@@ -145,7 +147,7 @@ export function raycastPlayers(
     if (nearby) {
       const seen = new Set<Box>()
       const out: Box[] = []
-      for (let t = 0; t <= Math.min(best.t, 140); t += 10) {
+      for (let t = 0; t <= Math.min(best.t, 700); t += 10) {
         for (const b of nearby(ox + dx * t, oz + dz * t)) {
           if (!seen.has(b)) {
             seen.add(b)
