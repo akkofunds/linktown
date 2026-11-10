@@ -354,8 +354,15 @@ export class GameEngine {
 
     on(window, 'mousemove', (e: MouseEvent) => {
       if (document.pointerLockElement) {
-        this.localPlayer.yaw -= e.movementX * 0.0036
-        this.localPlayer.pitch = Math.max(-1.45, Math.min(1.45, this.localPlayer.pitch - e.movementY * 0.0036))
+        // Some Chromium pointer-lock transitions emit a mousemove with an
+        // invalid delta. Never let that poison yaw/pitch and the movement vector.
+        if (!Number.isFinite(e.movementX) || !Number.isFinite(e.movementY)) return
+        const yaw = Number.isFinite(this.localPlayer.yaw) ? this.localPlayer.yaw : 0
+        const pitch = Number.isFinite(this.localPlayer.pitch) ? this.localPlayer.pitch : 0
+        const turn = yaw - e.movementX * 0.0036
+        if (!Number.isFinite(turn)) return
+        this.localPlayer.yaw = Math.atan2(Math.sin(turn), Math.cos(turn))
+        this.localPlayer.pitch = Math.max(-1.45, Math.min(1.45, pitch - e.movementY * 0.0036))
       }
     })
 
@@ -1231,6 +1238,20 @@ export class GameEngine {
     const dt = Math.min(0.1, (time - this.lastFrameTime) / 1000)
     this.lastFrameTime = time
 
+    // Recover to a nearby valid pose if malformed pointer or network input
+    // ever reaches the simulation; NaN transforms blank the WebGL view.
+    const spawn = getArenaSpawn(this.localPlayer.id)
+    if (!Number.isFinite(this.localPlayer.x)) this.localPlayer.x = spawn.x
+    if (!Number.isFinite(this.localPlayer.z)) this.localPlayer.z = spawn.z
+    if (!Number.isFinite(this.localPlayer.y)) {
+      this.localPlayer.y = groundHeight(this.localPlayer.x, this.localPlayer.z, this.map.seed) + 1.6
+    }
+    if (!Number.isFinite(this.localPlayer.yaw)) this.localPlayer.yaw = spawn.yaw
+    if (!Number.isFinite(this.localPlayer.pitch)) this.localPlayer.pitch = 0
+    if (!Number.isFinite(this.moveVx)) this.moveVx = 0
+    if (!Number.isFinite(this.moveVz)) this.moveVz = 0
+    if (!Number.isFinite(this.vy)) this.vy = 0
+
     if (this.localPlayer.alive) {
       // Crouched players are stationary: any WASD input stands back up first
       const wantsMove = !!this.keys['w'] || !!this.keys['s'] || !!this.keys['a'] || !!this.keys['d']
@@ -1604,8 +1625,8 @@ export class GameEngine {
       this.callbacks.onChat?.(msg)
     } else if (msg.type === 'input' && fromId && this.players.has(fromId)) {
       const p = this.players.get(fromId)!
-      p.yaw = msg.yaw
-      p.pitch = msg.pitch
+      if (Number.isFinite(msg.yaw)) p.yaw = msg.yaw
+      if (Number.isFinite(msg.pitch)) p.pitch = msg.pitch
       // Remote coordinates: client-authoritative but speed-clamped so a
       // tampered client cannot teleport across the map. Budget covers the
       // fastest legit combo (sprint × super × denja) plus lag slack.
