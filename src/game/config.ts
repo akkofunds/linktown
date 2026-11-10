@@ -14,7 +14,7 @@ export const CFG = {
   TICK_MS: 50,              // 20 Hz simulation
   MATCH_DURATION: 600,      // 10 minutes (seconds)
   MAX_PLAYERS: 16,          // WebRTC P2P mesh room limit
-  VIS_RADIUS: 120,          // Distance culling limit
+  VIS_RADIUS: MAP_SIZE * 1.5,          // Distance culling limit
   PLAYER_SPEED: round1(REFERENCE_WALK_SPEED * speedScale), // units/sec base walk, scaled to map
   RUN_SPEED: round1(REFERENCE_RUN_SPEED * speedScale),     // units/sec sprint, scaled to map
   CROUCH_SPEED: 0,          // units/sec while crouched (stationary lock)
@@ -34,7 +34,7 @@ export const CFG = {
   RESPAWN_DELAY: 7000,      // 7s reprint delay
   NANITE_CACHE_AMOUNT: 100, // Nanite cache dropped on death
   NANITE_CACHE_RADIUS: 5.0, // Pickup radius in world units
-  JUMP_PAD_COUNT: 6,        // Maximum concurrent active dynamic jump pads
+  JUMP_PAD_COUNT: 0,        // Maximum concurrent active dynamic jump pads
   JUMP_PAD_LIFETIME: 28,    // Active duration in seconds before cycling
   JUMP_PAD_WARNING_TIME: 5, // Warning flicker phase in seconds before despawn
   JUMP_PAD_RADIUS: 2.2,     // Step-on activation radius in world units
@@ -42,7 +42,7 @@ export const CFG = {
   JUMP_PAD_LAUNCH_VY: 44,   // Vertical launch velocity (clears ~30u height)
   JUMP_PAD_MOMENTUM_BOOST: 1.5, // Airborne speed multiplier after a pad launch
   PORTAL_ROLL_MS: 10000,    // Roll for a portal spawn this often
-  PORTAL_CHANCE: 0.5,       // Chance per roll (only when none active)
+  PORTAL_CHANCE: 0,       // Chance per roll (only when none active)
   PORTAL_LIFETIME: 10,      // Seconds a portal pair stays open
   PORTAL_RADIUS: 2.5,       // Step-in trigger radius at each mouth
   ANCHOR_LIFETIME: 30000,   // Telepotu relay anchor lifetime (ms)
@@ -143,3 +143,4 @@ export const CORE_DETAILS: Record<CoreId, CoreInfo> = {
 }
 
 export const CORE_IDS: CoreId[] = Object.keys(CORE_DETAILS) as CoreId[]
+

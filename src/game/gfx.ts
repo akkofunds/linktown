@@ -40,7 +40,7 @@ export interface GfxPreset {
 }
 
 export const GFX_PRESETS: Record<GfxQuality, GfxPreset> = {
-  low: { maxPixelRatio: 1, msaa: 0, shadowMap: 1024, gtao: false, bloom: false },
+  low: { maxPixelRatio: 0.85, msaa: 0, shadowMap: 512, gtao: false, bloom: false },
   medium: { maxPixelRatio: 1, msaa: 4, shadowMap: 2048, gtao: false, bloom: true },
   high: { maxPixelRatio: 1.5, msaa: 4, shadowMap: 2048, gtao: true, bloom: true }
 }
@@ -56,7 +56,7 @@ export function getGfxQuality(): GfxQuality {
     const stored = localStorage.getItem('ltown_gfx')
     if (isQ(stored)) return stored
   } catch { /* storage unavailable */ }
-  return 'medium'
+  return 'low'
 }
 
 /** `?gpu=webgpu|webgl` (persisted); null = auto-detect. */
@@ -164,7 +164,7 @@ export async function createGfx(
   const kind: BackendKind = (renderer.backend as any).isWebGPUBackend === true ? 'webgpu' : 'webgl2'
   console.info(`[gfx] backend: ${kind}${kind === 'webgl2' && !wantWebGPU && force !== 'webgl' ? ' (no WebGPU adapter — automatic fallback)' : ''}`)
 
-  renderer.shadowMap.enabled = true
+  renderer.shadowMap.enabled = quality !== 'low'
   renderer.shadowMap.type = THREE.PCFSoftShadowMap
   renderer.toneMapping = THREE.ACESFilmicToneMapping
   renderer.toneMappingExposure = 1.05

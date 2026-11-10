@@ -121,6 +121,8 @@ export class GameEngine {
   private padBoostUntil = 0
   private lastShotTime = 0
   private lastDryFire = 0
+  private ammo = 17
+  private reloadingUntil = 0
   private lastHitTime = Date.now()
   private inputDisposers: Array<() => void> = []
   /** Pending setTimeout/setInterval handles for timed abilities so
@@ -288,7 +290,7 @@ export class GameEngine {
     this.frameCount = 0
 
     if (this.mode === 'solo') {
-      const bots = spawnBots(7, this.map)
+      const bots = spawnBots(0, this.map)
       for (const b of bots) {
         this.players.set(b.id, b)
       }
@@ -332,6 +334,7 @@ export class GameEngine {
     on(window, 'keydown', (e: KeyboardEvent) => {
       // Chat box owns the keyboard while typing (no WASD runaway, no Q/E/R).
       if ((e.target as HTMLElement)?.tagName === 'INPUT') return
+      if (e.code === 'Space') e.preventDefault()
       this.keys[e.key.toLowerCase()] = true
       if (e.key.toLowerCase() === 'c') {
         this.toggleCrouch()
@@ -340,7 +343,7 @@ export class GameEngine {
       } else if (e.key.toLowerCase() === 'e') {
         this.triggerSuper()
       } else if (e.key.toLowerCase() === 'r') {
-        this.triggerShield()
+        this.reloadGun()
       } else if (e.key === ' ') {
         this.triggerJump()
       }
@@ -582,9 +585,23 @@ export class GameEngine {
     return false
   }
 
+  private reloadGun() {
+    if (!this.localPlayer.alive || this.ammo >= 17 || this.reloadingUntil > Date.now()) return
+    this.reloadingUntil = Date.now() + 1000
+  }
+
   private shoot() {
     if (!this.localPlayer.alive || this.localPlayer.invisible) return
     const now = Date.now()
+    if (this.reloadingUntil > now) return
+    if (this.reloadingUntil && this.reloadingUntil <= now) {
+      this.ammo = 17
+      this.reloadingUntil = 0
+    }
+    if (this.ammo <= 0) {
+      this.reloadGun()
+      return
+    }
     if (now - this.lastShotTime < CFG.FIRE_INTERVAL_MS) return
     // Projector hand: the trigger is dead while the barrier is up.
     if (this.localPlayer.shieldActive && now < this.localPlayer.shieldEnd) {
@@ -594,7 +611,7 @@ export class GameEngine {
       }
       return
     }
-    if (this.localPlayer.health <= CFG.SHOT_COST_SINGLE) {
+    if (this.localPlayer.health <= 0) {
       // Dry-fire feedback (throttled): the trigger does nothing silently otherwise.
       if (now - this.lastDryFire > 250) {
         this.lastDryFire = now
@@ -604,8 +621,8 @@ export class GameEngine {
     }
 
     this.lastShotTime = now
-    this.localPlayer.health -= CFG.SHOT_COST_SINGLE
-    this.markHullSpent(this.localPlayer, now)
+    this.ammo--
+    if (this.ammo === 0) this.reloadGun()
     sound.playShoot(this.localPlayer.superActive)
 
     const yaw = this.localPlayer.yaw, pitch = this.localPlayer.pitch
@@ -1278,6 +1295,8 @@ export class GameEngine {
         this.localPlayer.y = groundBase
         this.vy = 0
       }
+      // Hold Space to bunny-hop as soon as the chassis lands; there is no hop limit.
+      if (this.keys[' '] && this.isOnGround(this.localPlayer)) this.triggerJump()
 
       // Dynamic Jump Pad Trigger Check
       const now = Date.now()
@@ -1416,6 +1435,8 @@ export class GameEngine {
       botPlayers: botCount,
       mode: this.mode,
       tickRate: 20,
+      ammo: this.ammo,
+      reloading: this.reloadingUntil > Date.now(),
       nearestPilot
     }
 
@@ -1602,9 +1623,7 @@ export class GameEngine {
       // spam cannot buy unlimited DPS.
       if (now - (this.remoteShotAt.get(fromId) ?? 0) < CFG.FIRE_INTERVAL_MS) return
       this.remoteShotAt.set(fromId, now)
-      if (shooter.health <= CFG.SHOT_COST_SINGLE) return
-      shooter.health -= CFG.SHOT_COST_SINGLE
-      shooter.lastDamageAt = Date.now()
+      if (shooter.health <= 0) return
       // Hitscan from the shooter's true eye, not our (possibly stale) copy
       const yaw = shooter.yaw, pitch = shooter.pitch
       const dx = msg.dx ?? (-Math.cos(pitch) * Math.sin(yaw))
@@ -1732,3 +1751,4 @@ export class GameEngine {
     this.client?.destroy()
   }
 }
+

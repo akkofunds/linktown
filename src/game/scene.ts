@@ -1535,17 +1535,8 @@ export class SceneRenderer {
     const sr = new SceneRenderer(canvas)
     const gfx = (sr.gfx = await createGfx(canvas, sr.scene, sr.camera))
 
-    // Image-based lighting: neutral studio env for PBR reflections on
-    // metals/armor. Kept subtle so the daylight art direction stays intact.
-    const pmrem = new THREE.PMREMGenerator(gfx.renderer)
-    sr.scene.environment = (await pmrem.fromSceneAsync(new RoomEnvironment(), 0.04)).texture
-    sr.scene.environmentIntensity = 0.55
-    pmrem.dispose()
-
     sr.setupSky()
     sr.setupLighting(gfx.preset.shadowMap)
-    sr.setupCosmos()
-    sr.setupClouds()
 
     // Add camera to scene graph so camera children (robot arm, FP shield) render in camera space.
     // A short-range local bounce keeps the dark titanium readable without flattening world lighting.
@@ -1713,31 +1704,39 @@ export class SceneRenderer {
     const blasterGrp = new THREE.Group()
     blasterGrp.position.set(0, 0.004, -0.11)
 
-    const barrelGeo = new THREE.CylinderGeometry(0.028, 0.034, 0.16, 16)
-    const barrel = new THREE.Mesh(barrelGeo, armJointMat)
-    barrel.rotation.x = Math.PI / 2
-    blasterGrp.add(barrel)
-
-    const muzzleBrakeGeo = new THREE.CylinderGeometry(0.036, 0.034, 0.032, 16)
-    const muzzleBrake = new THREE.Mesh(muzzleBrakeGeo, armMetalMat)
-    muzzleBrake.rotation.x = Math.PI / 2
-    muzzleBrake.position.z = -0.082
-    blasterGrp.add(muzzleBrake)
+    // Simple low-poly Glock 19 silhouette (slide, barrel, grip, trigger guard).
+    const pistolSlide = new THREE.Mesh(new THREE.BoxGeometry(0.066, 0.052, 0.18), armCarapaceMat)
+    pistolSlide.position.set(0, 0.012, -0.025)
+    blasterGrp.add(pistolSlide)
+    const pistolBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.16, 8), armJointMat)
+    pistolBarrel.rotation.x = Math.PI / 2
+    pistolBarrel.position.set(0, 0.004, -0.055)
+    blasterGrp.add(pistolBarrel)
+    const pistolGrip = new THREE.Mesh(new THREE.BoxGeometry(0.058, 0.104, 0.07), armMetalMat)
+    pistolGrip.position.set(0, -0.064, 0.025)
+    pistolGrip.rotation.x = -0.18
+    blasterGrp.add(pistolGrip)
+    const triggerGuard = new THREE.Mesh(new THREE.TorusGeometry(0.022, 0.004, 5, 12, Math.PI), chromePinMat)
+    triggerGuard.position.set(0, -0.035, 0.035)
+    triggerGuard.rotation.z = Math.PI
+    blasterGrp.add(triggerGuard)
 
     const glowRingGeo = new THREE.TorusGeometry(0.030, 0.0055, 8, 16)
     const glowRing = new THREE.Mesh(glowRingGeo, this.armCoreMat)
     glowRing.position.z = -0.025
+    glowRing.visible = false
     blasterGrp.add(glowRing)
 
     const apertureRing = new THREE.Mesh(new THREE.TorusGeometry(0.022, 0.004, 8, 14), accentGoldMat)
     apertureRing.position.z = -0.096
+    apertureRing.visible = false
     blasterGrp.add(apertureRing)
 
     this.robotArm.add(blasterGrp)
     this.blasterBarrel = blasterGrp
 
     // Central plasma reactor sphere
-    const core = new THREE.Mesh(new THREE.SphereGeometry(0.022, 12, 12), this.armCoreMat)
+    const core = new THREE.Mesh(new THREE.SphereGeometry(0.003, 6, 6), armJointMat)
     core.position.set(0, 0.004, -0.08)
     this.robotArm.add(core)
     this.blasterCore = core
@@ -2059,6 +2058,36 @@ export class SceneRenderer {
     const SIZE = map.floor.w
     const EXTENT = SIZE + 80 // ground plane spans the arena + horizon skirt
     const maxAnisotropy = this.gfx.getMaxAnisotropy()
+
+    // Low-cost, open baseplate variant used by the school arena fork.
+    if (map.boxes.length === 4 && map.boxes.every((b) => b.type === 'shieldwall')) {
+      const floorGeo = new THREE.PlaneGeometry(EXTENT, EXTENT)
+      floorGeo.rotateX(-Math.PI / 2)
+      const floor = new THREE.Mesh(floorGeo, new THREE.MeshStandardMaterial({ color: 0x555b60, roughness: 0.92, metalness: 0.02 }))
+      floor.receiveShadow = false
+      this.scene.add(floor)
+
+      const grid = new THREE.GridHelper(SIZE, 60, 0x9aa3a8, 0x737b80)
+      grid.position.y = 0.025
+      const gridMat = grid.material as THREE.Material
+      gridMat.transparent = true
+      ;(gridMat as THREE.MeshBasicMaterial).opacity = 0.34
+      this.scene.add(grid)
+
+      const wallMat = new THREE.MeshBasicMaterial({
+        color: 0x58d6e4,
+        transparent: true,
+        opacity: 0.16,
+        depthWrite: false,
+        side: THREE.DoubleSide
+      })
+      for (const b of map.boxes) {
+        const wall = new THREE.Mesh(new THREE.BoxGeometry(b.w, b.h, b.d), wallMat)
+        wall.position.set(b.x, b.y, b.z)
+        this.scene.add(wall)
+      }
+      return
+    }
 
     // 1. Layered ground: macro albedo (world-mapped, 1:1) + roughness zones
     //    + tiled micro-grain overlay. Two layers because one 1024 canvas
