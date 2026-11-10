@@ -120,6 +120,7 @@ export class GameEngine {
   private vy = 0
   private moveVx = 0
   private moveVz = 0
+  private bhopStrafedThisAir = false
   private padBoostUntil = 0
   private lastShotTime = 0
   private lastDryFire = 0
@@ -439,15 +440,16 @@ export class GameEngine {
 
     if (bunnyHop) {
       const horizontalSpeed = Math.hypot(this.moveVx, this.moveVz)
-      if (horizontalSpeed > CFG.RUN_SPEED * 0.4) {
-        const boostedSpeed = Math.min(CFG.BHOP_MAX_SPEED, horizontalSpeed * CFG.BHOP_LAND_BOOST)
+      if (this.bhopStrafedThisAir && horizontalSpeed > CFG.RUN_SPEED * 0.4) {
+        const boostedSpeed = horizontalSpeed * CFG.BHOP_LAND_BOOST
         const scale = boostedSpeed / horizontalSpeed
         this.moveVx *= scale
         this.moveVz *= scale
       }
     }
 
-    // Bunny hops preserve horizontal momentum; no jump count limit.
+    this.bhopStrafedThisAir = false
+    // Bunny hops preserve horizontal momentum; no jump count or speed limit.
     this.vy = CFG.JUMP_SPEED
     if (this.mode === 'client') {
       this.client?.send({ type: 'jump' })
@@ -1272,6 +1274,11 @@ export class GameEngine {
       const len = Math.hypot(mx, mz)
       const grounded = this.isOnGround(this.localPlayer)
       const isRunning = len > 0
+      const hasForwardInput = this.keys['w'] || this.keys['s']
+      const hasSideInput = this.keys['a'] || this.keys['d']
+      if (!grounded && this.keys['space'] && hasForwardInput && hasSideInput && Math.hypot(this.moveVx, this.moveVz) > CFG.RUN_SPEED * 0.4) {
+        this.bhopStrafedThisAir = true
+      }
       let speed = CFG.RUN_SPEED
 
       if (this.localPlayer.superActive) {
@@ -1289,7 +1296,7 @@ export class GameEngine {
       if (len > 0) {
         const wishX = mx / len
         const wishZ = mz / len
-        const accel = grounded ? CFG.GROUND_ACCEL : CFG.AIR_ACCEL
+        const accel = grounded ? CFG.GROUND_ACCEL : (this.keys['space'] ? CFG.AIR_ACCEL : 0)
         const alongWish = this.moveVx * wishX + this.moveVz * wishZ
         const addSpeed = Math.max(0, speed - alongWish)
         const accelStep = Math.min(addSpeed, accel * dt)
@@ -1300,12 +1307,6 @@ export class GameEngine {
         const airDecay = Math.max(0, 1 - CFG.AIR_FRICTION * dt)
         this.moveVx *= airDecay
         this.moveVz *= airDecay
-        const airSpeed = Math.hypot(this.moveVx, this.moveVz)
-        if (airSpeed > CFG.BHOP_MAX_SPEED) {
-          const scale = CFG.BHOP_MAX_SPEED / airSpeed
-          this.moveVx *= scale
-          this.moveVz *= scale
-        }
       } else if (len === 0) {
         const groundDecay = Math.max(0, 1 - CFG.GROUND_FRICTION * dt)
         this.moveVx *= groundDecay

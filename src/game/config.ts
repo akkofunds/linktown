@@ -11,8 +11,8 @@ export const CFG = {
   GROUND_ACCEL: 180,        // units/sec²; ramps to run speed over about 0.33s
   AIR_ACCEL: 190,           // strong directional air control for strafing
   AIR_FRICTION: 0,
-  BHOP_LAND_BOOST: 1.18,    // carried speed increase on each held jump
-  BHOP_MAX_SPEED: 110,      // uncapped jump count, bounded horizontal speed
+  BHOP_LAND_BOOST: 1.04,    // small reward only for a real air-strafe hop
+  BHOP_SPEED_SCALE: 110,    // HUD bar reference only; movement has no speed cap
   CROUCH_SPEED: 0,          // units/sec while crouched (stationary lock)
   PLAYER_RADIUS: 0.45,
   PLAYER_HEIGHT: 2.3,
