@@ -1707,9 +1707,26 @@ export class SceneRenderer {
     blasterGrp.position.set(0, 0.004, -0.11)
 
     // Simple low-poly Glock 19 silhouette (slide, barrel, grip, trigger guard).
-    const glockSlideMat = new THREE.MeshStandardMaterial({ color: 0x71808a, roughness: 0.56, metalness: 0.3 })
+    const glockSlideMat = new THREE.MeshStandardMaterial({ color: 0x77838b, roughness: 0.56, metalness: 0.3 })
+    const glockGripMat = new THREE.MeshStandardMaterial({ color: 0x303840, roughness: 0.82, metalness: 0.12 })
     const glockSightMat = new THREE.MeshBasicMaterial({ color: 0xffe2a5 })
-    const pistolSlide = new THREE.Mesh(new THREE.BoxGeometry(0.078, 0.058, 0.205), glockSlideMat)
+    // Beveled, narrowed muzzle profile reads as a pistol slide in first person
+    // while staying a small handful of meshes for integrated graphics.
+    const slideShape = new THREE.Shape()
+    slideShape.moveTo(-0.034, -0.092)
+    slideShape.lineTo(0.034, -0.092)
+    slideShape.lineTo(0.034, 0.060)
+    slideShape.lineTo(0.024, 0.102)
+    slideShape.lineTo(-0.024, 0.102)
+    slideShape.lineTo(-0.034, 0.060)
+    slideShape.closePath()
+    const slideGeo = new THREE.ExtrudeGeometry(slideShape, {
+      depth: 0.038, bevelEnabled: true, bevelSegments: 2,
+      steps: 1, bevelSize: 0.002, bevelThickness: 0.002
+    })
+    slideGeo.translate(0, 0, -0.019)
+    slideGeo.rotateX(-Math.PI / 2)
+    const pistolSlide = new THREE.Mesh(slideGeo, glockSlideMat)
     pistolSlide.position.set(0, 0.015, -0.032)
     blasterGrp.add(pistolSlide)
     const slideRail = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.006, 0.17), chromePinMat)
@@ -1728,12 +1745,15 @@ export class SceneRenderer {
     muzzle.rotation.x = Math.PI / 2
     muzzle.position.set(0, 0.002, -0.173)
     blasterGrp.add(muzzle)
-    const pistolGrip = new THREE.Mesh(new THREE.BoxGeometry(0.064, 0.118, 0.076), armCarapaceMat)
-    pistolGrip.position.set(0, -0.066, 0.025)
+    const receiver = new THREE.Mesh(new THREE.BoxGeometry(0.064, 0.032, 0.126), armCarapaceMat)
+    receiver.position.set(0, -0.026, 0.012)
+    blasterGrp.add(receiver)
+    const pistolGrip = new THREE.Mesh(new THREE.BoxGeometry(0.064, 0.118, 0.076), glockGripMat)
+    pistolGrip.position.set(0, -0.080, 0.039)
     pistolGrip.rotation.x = -0.24
     blasterGrp.add(pistolGrip)
-    const gripPanel = new THREE.Mesh(new THREE.BoxGeometry(0.004, 0.082, 0.054), armJointMat)
-    gripPanel.position.set(0.033, -0.066, 0.027)
+    const gripPanel = new THREE.Mesh(new THREE.BoxGeometry(0.004, 0.084, 0.058), armJointMat)
+    gripPanel.position.set(0.033, -0.080, 0.041)
     gripPanel.rotation.x = -0.24
     blasterGrp.add(gripPanel)
     const trigger = new THREE.Mesh(new THREE.BoxGeometry(0.006, 0.03, 0.008), accentGoldMat)
