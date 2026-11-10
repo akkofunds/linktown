@@ -1707,9 +1707,19 @@ export class SceneRenderer {
     blasterGrp.position.set(0, 0.004, -0.11)
 
     // Simple low-poly Glock 19 silhouette (slide, barrel, grip, trigger guard).
-    const pistolSlide = new THREE.Mesh(new THREE.BoxGeometry(0.066, 0.052, 0.18), armCarapaceMat)
+    const glockSlideMat = new THREE.MeshStandardMaterial({ color: 0x56636c, roughness: 0.62, metalness: 0.24 })
+    const glockSightMat = new THREE.MeshBasicMaterial({ color: 0xffe2a5 })
+    const pistolSlide = new THREE.Mesh(new THREE.BoxGeometry(0.066, 0.052, 0.18), glockSlideMat)
     pistolSlide.position.set(0, 0.012, -0.025)
     blasterGrp.add(pistolSlide)
+    const slideRail = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.004, 0.15), armMetalMat)
+    slideRail.position.set(0, 0.041, -0.025)
+    blasterGrp.add(slideRail)
+    for (const z of [-0.098, 0.045]) {
+      const sight = new THREE.Mesh(new THREE.BoxGeometry(0.009, 0.006, 0.012), glockSightMat)
+      sight.position.set(0, 0.043, z)
+      blasterGrp.add(sight)
+    }
     const pistolBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.16, 8), armJointMat)
     pistolBarrel.rotation.x = Math.PI / 2
     pistolBarrel.position.set(0, 0.004, -0.055)
