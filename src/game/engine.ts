@@ -1463,6 +1463,10 @@ export class GameEngine {
   }
 
   private pushHudUpdate() {
+    // Keep the speedometer safe even if a bad input or stale network state
+    // briefly contaminates movement velocity between simulation frames.
+    if (!Number.isFinite(this.moveVx)) this.moveVx = 0
+    if (!Number.isFinite(this.moveVz)) this.moveVz = 0
     if (this.reloadingUntil && Date.now() >= this.reloadingUntil) {
       this.ammo = 17
       this.reloadingUntil = 0
@@ -1500,7 +1504,7 @@ export class GameEngine {
       tickRate: 20,
       ammo: this.ammo,
       reloading: this.reloadingUntil > Date.now(),
-      speed: Math.hypot(this.moveVx, this.moveVz),
+      speed: Math.round(Math.hypot(this.moveVx, this.moveVz)),
       airborne: this.localPlayer.y > 1.65,
       nearestPilot
     }
