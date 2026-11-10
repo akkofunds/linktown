@@ -257,13 +257,19 @@ const reprintPercent = computed(() => {
 <template>
   <div class="hud-overlay" :class="{ 'hit-vignette': hitFlash, 'low-hull': lowHull }">
     <div class="arena-minimap" aria-label="Player minimap">
-      <span class="minimap-title">LINKTOWN · 1.2 KM</span>
+      <span class="minimap-title">LINKTOWN · 1.0 KM</span>
       <svg viewBox="0 0 120 120" role="img" aria-label="Arena player positions">
         <rect x="10" y="10" width="100" height="100" rx="2" class="minimap-field" />
         <line x1="60" y1="10" x2="60" y2="110" class="minimap-grid" />
         <line x1="10" y1="60" x2="110" y2="60" class="minimap-grid" />
         <circle v-for="dot in mapDots" :key="dot.id" :cx="dot.x" :cy="dot.y" :r="dot.self ? 3.2 : 2.4" :class="dot.self ? 'minimap-self' : 'minimap-player'" />
       </svg>
+    </div>
+    <div class="speed-monitor" aria-label="Movement speed">
+      <div class="speed-monitor-heading"><span>MOVE SPEED</span><span>{{ telemetry?.airborne ? 'AIR' : 'GROUND' }}</span></div>
+      <div class="speed-monitor-value">{{ Math.round(telemetry?.speed ?? 0) }}<small>u/s</small></div>
+      <div class="speed-monitor-track"><div class="speed-monitor-fill" :style="{ width: `${Math.min(100, ((telemetry?.speed ?? 0) / CFG.BHOP_MAX_SPEED) * 100)}%` }" /></div>
+      <small class="speed-monitor-cap">BHOP · {{ CFG.BHOP_MAX_SPEED }} CAP</small>
     </div>
     <div class="glock-readout">
       <span>GLOCK 19</span>
@@ -614,6 +620,14 @@ const reprintPercent = computed(() => {
 }
 .minimap-title { display: block; padding: 2px 4px 3px; color: #9beaf0; font: 700 10px monospace; letter-spacing: .08em; }
 .arena-minimap svg { display: block; width: 100%; }
+.speed-monitor { position: absolute; left: 18px; top: 278px; width: 142px; box-sizing: border-box; padding: 8px 10px; border: 1px solid rgba(112,225,235,.48); border-radius: 5px; background: rgba(5,12,18,.82); box-shadow: 0 3px 18px rgba(0,0,0,.3); font: 700 10px monospace; }
+.speed-monitor-heading { display: flex; justify-content: space-between; color: #9beaf0; letter-spacing: .06em; }
+.speed-monitor-heading span:last-child { color: #63f4b4; }
+.speed-monitor-value { margin: 3px 0 4px; color: #fff; font-size: 26px; line-height: 1; }
+.speed-monitor-value small { margin-left: 4px; color: #9beaf0; font-size: 10px; }
+.speed-monitor-track { height: 4px; overflow: hidden; border-radius: 4px; background: rgba(255,255,255,.15); }
+.speed-monitor-fill { height: 100%; border-radius: inherit; background: linear-gradient(90deg,#63f4b4,#71cbd3); transition: width .12s linear; }
+.speed-monitor-cap { display: block; margin-top: 5px; color: rgba(220,240,242,.68); font-size: 8px; letter-spacing: .08em; }
 .minimap-field { fill: rgba(32, 47, 53, .92); stroke: #71cbd3; stroke-width: 1.2; }
 .minimap-grid { stroke: rgba(180, 220, 225, .18); stroke-width: .5; }
 .minimap-player { fill: #f8fbff; stroke: #17232a; stroke-width: .7; }

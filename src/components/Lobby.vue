@@ -77,7 +77,7 @@ const copyInvite = async () => {
 
       <section class="hero">
         <h2>Linktown School Arena</h2>
-        <p>Large, flat 1.2 km arena. One Glock 19, unlimited bhop, and live multiplayer.</p>
+        <p>Large, flat 1.0 km arena. One Glock 19, unlimited bhop, and live multiplayer.</p>
       </section>
 
       <section class="block">
