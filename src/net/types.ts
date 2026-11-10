@@ -270,6 +270,8 @@ export interface TelemetryData {
   botPlayers: number
   mode: 'solo' | 'host' | 'client'
   tickRate: number
+  ammo?: number
+  reloading?: boolean
   nearestPilot?: {
     name: string
     distance: number
