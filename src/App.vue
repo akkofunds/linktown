@@ -59,6 +59,7 @@ const telemetry = ref<TelemetryData>({
   mode: 'solo',
   tickRate: 20
 })
+const mapPlayers = ref<PlayerState[]>([])
 let currentMatchMode: 'solo' | 'host' | 'client' = 'solo'
 
 // Public room directory (presence; joins stay direct PeerJS P2P)
@@ -242,6 +243,8 @@ const initEngine = async (seed: number, mode: 'solo' | 'host' | 'client') => {
     {
       onHudUpdate: (p, time, hvt, telem) => {
         localPlayer.value = { ...p }
+        mapPlayers.value = [...(engine?.players.values() ?? [])].map((pilot) => ({ ...pilot }))
+        if (!mapPlayers.value.some((pilot) => pilot.id === p.id)) mapPlayers.value.push({ ...p })
         matchTime.value = time
         hvtId.value = hvt
         if (telem) telemetry.value = telem
@@ -603,6 +606,7 @@ const handleSignalSubmit = (val: string) => {
       :leaderboard="leaderboard"
       :local-player-id="localPlayer.id || 1"
       :chat-messages="chatMessages"
+      :players-on-map="mapPlayers"
       @send-chat="engine?.sendChat($event)"
     />
 
