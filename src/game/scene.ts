@@ -1415,9 +1415,9 @@ export class SceneRenderer {
   private armRecoilRot = 0
   private armRest = 0 // 0 = aim pose, 1 = crouch rest pose (smoothed)
   private bobTimer = 0
-  // Nanite hand <-> blaster morph (cosmetic): blaster on shot, hand after 5s idle
-  private blasterMorph = 0 // 0 = open hand, 1 = blaster gun
-  private blasterTarget = 0
+  // Keep the Glock visible; the hand remains a lightweight first-person arm.
+  private blasterMorph = 1
+  private blasterTarget = 1
   private lastMorphTarget = 0
   private timeSinceShot = 99
   private fingerGroups: THREE.Group[] = []
@@ -1878,8 +1878,8 @@ export class SceneRenderer {
     this.muzzleFlash.visible = false
     this.robotArm.add(this.muzzleFlash)
 
-    // Start in open-hand form; first shot morphs to blaster
-    this.applyBlasterMorph(0)
+    // Start with the single Glock 19 already in hand.
+    this.applyBlasterMorph(1)
 
     this.camera.add(this.robotArm)
   }
@@ -4071,11 +4071,7 @@ export class SceneRenderer {
     this.armConduitMat.color.setHex(themeColor).lerp(this.morphDim, (1 - this.blasterMorph) * 0.6)
     this.armCoreMat.color.setHex(themeColor).lerp(this.morphDim, (1 - this.blasterMorph) * 0.6)
 
-    // Nanite revert: blaster -> open hand after 5s without a shot
     this.timeSinceShot += dt
-    if (this.timeSinceShot > 5.0) {
-      this.blasterTarget = 0
-    }
 
     if (this.blasterTarget !== this.lastMorphTarget) {
       this.lastMorphTarget = this.blasterTarget
