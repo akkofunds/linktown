@@ -2914,8 +2914,18 @@ export class SceneRenderer {
 
       group.visible = p.alive && !p.invisible
       if (group.visible) {
-        group.position.set(p.x, p.y, p.z)
-        group.rotation.y = p.yaw
+        if (!group.userData.remotePositionReady) {
+          group.position.set(p.x, p.y, p.z)
+          group.userData.remotePositionReady = true
+        } else {
+          // Smooth 20Hz room snapshots across render frames so a fast bhop
+          // does not make remote pilots look like they're trailing behind.
+          group.position.x += (p.x - group.position.x) * 0.55
+          group.position.y += (p.y - group.position.y) * 0.55
+          group.position.z += (p.z - group.position.z) * 0.55
+        }
+        const yawDelta = Math.atan2(Math.sin(p.yaw - group.rotation.y), Math.cos(p.yaw - group.rotation.y))
+        group.rotation.y += yawDelta * 0.55
 
         // Rotate tactical beacon diamond
         const refs = group.userData.refs as {

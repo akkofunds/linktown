@@ -354,8 +354,8 @@ export class GameEngine {
 
     on(window, 'mousemove', (e: MouseEvent) => {
       if (document.pointerLockElement) {
-        this.localPlayer.yaw -= e.movementX * 0.0018
-        this.localPlayer.pitch = Math.max(-1.45, Math.min(1.45, this.localPlayer.pitch - e.movementY * 0.0018))
+        this.localPlayer.yaw -= e.movementX * 0.0036
+        this.localPlayer.pitch = Math.max(-1.45, Math.min(1.45, this.localPlayer.pitch - e.movementY * 0.0036))
       }
     })
 
@@ -425,12 +425,22 @@ export class GameEngine {
     }
   }
 
-  private triggerJump() {
+  private triggerJump(bunnyHop = false) {
     if (!this.localPlayer.alive || this.localPlayer.crouching) return
     const onGround = this.isOnGround(this.localPlayer)
     if (!onGround) return
 
-    // Single jump — no modifiers. Verticality comes from jump pads.
+    if (bunnyHop) {
+      const horizontalSpeed = Math.hypot(this.moveVx, this.moveVz)
+      if (horizontalSpeed > CFG.RUN_SPEED * 0.4) {
+        const boostedSpeed = Math.min(CFG.BHOP_MAX_SPEED, horizontalSpeed * CFG.BHOP_LAND_BOOST)
+        const scale = boostedSpeed / horizontalSpeed
+        this.moveVx *= scale
+        this.moveVz *= scale
+      }
+    }
+
+    // Bunny hops preserve horizontal momentum; no jump count limit.
     this.vy = CFG.JUMP_SPEED
     if (this.mode === 'client') {
       this.client?.send({ type: 'jump' })
@@ -1269,6 +1279,12 @@ export class GameEngine {
         const airDecay = Math.max(0, 1 - CFG.AIR_FRICTION * dt)
         this.moveVx *= airDecay
         this.moveVz *= airDecay
+        const airSpeed = Math.hypot(this.moveVx, this.moveVz)
+        if (airSpeed > CFG.BHOP_MAX_SPEED) {
+          const scale = CFG.BHOP_MAX_SPEED / airSpeed
+          this.moveVx *= scale
+          this.moveVz *= scale
+        }
       } else if (len === 0) {
         const groundDecay = Math.max(0, 1 - CFG.GROUND_FRICTION * dt)
         this.moveVx *= groundDecay
@@ -1318,7 +1334,7 @@ export class GameEngine {
         this.vy = 0
       }
       // Hold Space to bunny-hop as soon as the chassis lands; there is no hop limit.
-      if (this.keys['space'] && this.isOnGround(this.localPlayer)) this.triggerJump()
+      if (this.keys['space'] && this.isOnGround(this.localPlayer)) this.triggerJump(true)
 
       // Dynamic Jump Pad Trigger Check
       const now = Date.now()
