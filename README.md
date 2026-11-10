@@ -11,7 +11,7 @@ Open the [GitHub Pages game](https://akkofunds.github.io/linktown/?gfx=low&gpu=w
 - Infinite reserve ammo; Glock 19 is the only weapon
 - Create a room and share its link with friends to play online
 
-The arena is a flat 1,200 × 1,200 unit baseplate with a perimeter barrier and a minimap showing live player positions. Solo mode has no bots to keep Chromebook CPU and GPU use low.
+The arena is a flat 1,000 × 1,000 unit baseplate with a perimeter barrier and a minimap showing live player positions. Solo mode has no bots to keep Chromebook CPU and GPU use low.
 
 ## Low graphics
 
