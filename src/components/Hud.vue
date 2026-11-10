@@ -606,7 +606,6 @@ const reprintPercent = computed(() => {
   transition: box-shadow 0.15s ease;
   user-select: none;
 }
-.actions-panel { display: none; }
 
 .arena-minimap {
   position: absolute;
@@ -1092,7 +1091,7 @@ const reprintPercent = computed(() => {
 }
 
 .actions-panel {
-  display: flex;
+  display: none !important;
   gap: 12px;
 }
 
