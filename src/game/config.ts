@@ -2,56 +2,64 @@
 import { MAP_SIZE } from './map'
 
 export const CFG = {
-  TICK_MS: 50,              // 20 Hz simulation
-  MATCH_DURATION: 600,      // 10 minutes (seconds)
-  MAX_PLAYERS: 16,          // WebRTC P2P mesh room limit
-  VIS_RADIUS: MAP_SIZE * 1.5,          // Distance culling limit
-  PLAYER_SPEED: 36,         // units/sec walk
-  RUN_SPEED: 60,            // fast arena pace
-  GROUND_ACCEL: 180,        // units/sec²; ramps to run speed over about 0.33s
-  AIR_ACCEL: 190,           // strong directional air control for strafing
-  AIR_FRICTION: 0,
-  BHOP_LAND_BOOST: 1.04,    // small reward only for a real air-strafe hop
-  BHOP_SPEED_SCALE: 110,    // HUD bar reference only; movement has no speed cap
-  CROUCH_SPEED: 0,          // units/sec while crouched (stationary lock)
-  PLAYER_RADIUS: 0.45,
-  PLAYER_HEIGHT: 2.3,
-  EYE_HEIGHT: 1.95,
-  CROUCH_EYE_HEIGHT: 0.85,
-  AUTO_CROUCH_MS: 5000,     // Auto-crouch after 5s of no movement
-  MAX_HEALTH: 500,          // Hull = nanite census (lore.md:23)
-  REGEN_DELAY: 3000,        // Calm period (no damage taken, no hull spent) before hull rebuild starts
-  REGEN_RATE: 1,            // Hull rebuilt per second once the calm period completes
-  SHOT_COST_SINGLE: 2,      // Nanite mass spent per single shot
-  FIRE_INTERVAL_MS: 100,    // Min gap between shots (10 shots/sec max)
-  CHARGE_MAX: 4,            // Max charge shot bursts
-  SUPER_COST: 50,           // Nanite mass spent to trigger Super overclock
-  SUPER_DURATION: 10000,    // 10s Super duration
-  RESPAWN_DELAY: 7000,      // 7s reprint delay
-  NANITE_CACHE_AMOUNT: 100, // Nanite cache dropped on death
-  NANITE_CACHE_RADIUS: 5.0, // Pickup radius in world units
-  JUMP_PAD_COUNT: 0,        // Maximum concurrent active dynamic jump pads
-  JUMP_PAD_LIFETIME: 28,    // Active duration in seconds before cycling
-  JUMP_PAD_WARNING_TIME: 5, // Warning flicker phase in seconds before despawn
-  JUMP_PAD_RADIUS: 2.2,     // Step-on activation radius in world units
-  JUMP_PAD_COOLDOWN_MS: 1200,// Anti-retrigger cooldown per entity (ms)
-  JUMP_PAD_LAUNCH_VY: 44,   // Vertical launch velocity (clears ~30u height)
-  JUMP_PAD_MOMENTUM_BOOST: 1.5, // Airborne speed multiplier after a pad launch
-  PORTAL_ROLL_MS: 10000,    // Roll for a portal spawn this often
-  PORTAL_CHANCE: 0,       // Chance per roll (only when none active)
-  PORTAL_LIFETIME: 10,      // Seconds a portal pair stays open
-  PORTAL_RADIUS: 2.5,       // Step-in trigger radius at each mouth
-  ANCHOR_LIFETIME: 30000,   // Telepotu relay anchor lifetime (ms)
-  RECALL_COST: 15,          // Nanite mass spent to warp back to anchor
-  JUMP_SPEED: 11,           // Grounded jump arc, about 1.5 units high
-  GRAVITY: 40,              // Stronger gravity for a quick, grounded landing
-  SUPER_JUMP_SPEED: 44,     // High jump velocity (~10x height)
-  SUPER_JUMP_COST: 20,      // Nanite mass spent per Super Jump
-  DMG_SINGLE: 20,           // Base hitscan damage
-  SUPER_MULT: 3,            // 3x damage multiplier while Super is active
-  SHIELD_COST: 80,          // Nanite mass spent to deploy shield
-  SHIELD_DURATION: 10000,   // 10s damage immunity
-  RECONNECT_GRACE_MS: 15000,// 15s grace for reconnect
+  TICK_MS: 50,
+  MATCH_DURATION: 600,
+  MAX_PLAYERS: 16,
+  VIS_RADIUS: MAP_SIZE * 1.5,
+
+  // ── Valorant / CS style movement ────────────────────────────────
+  PLAYER_SPEED: 32,          // walk (rarely used)
+  RUN_SPEED: 58,             // max ground speed (CS-ish)
+  GROUND_ACCEL: 220,         // how fast you reach run speed
+  GROUND_FRICTION: 9.5,      // high = crisp counter-strafe stop
+  AIR_ACCEL: 85,             // Source-style air control (lower = more skill)
+  AIR_FRICTION: 0,           // zero air drag
+  AIR_MAX_SPEED: 280,        // soft ceiling so bhop doesn’t go infinite
+  BHOP_LAND_BOOST: 1.06,     // tiny reward for clean hop
+  BHOP_SPEED_SCALE: 110,     // HUD only
+
+  CROUCH_SPEED: 0,
+  PLAYER_RADIUS: 0.48,
+  PLAYER_HEIGHT: 2.35,
+  EYE_HEIGHT: 1.92,
+  CROUCH_EYE_HEIGHT: 0.92,
+  AUTO_CROUCH_MS: 5000,
+
+  MAX_HEALTH: 500,
+  REGEN_DELAY: 3000,
+  REGEN_RATE: 1,
+  SHOT_COST_SINGLE: 2,
+  FIRE_INTERVAL_MS: 95,      // ~10.5 rps Glock-ish
+  CHARGE_MAX: 4,
+  SUPER_COST: 50,
+  SUPER_DURATION: 10000,
+  RESPAWN_DELAY: 7000,
+  NANITE_CACHE_AMOUNT: 100,
+  NANITE_CACHE_RADIUS: 5.0,
+
+  JUMP_PAD_COUNT: 0,
+  JUMP_PAD_LIFETIME: 28,
+  JUMP_PAD_WARNING_TIME: 5,
+  JUMP_PAD_RADIUS: 2.2,
+  JUMP_PAD_COOLDOWN_MS: 1200,
+  JUMP_PAD_LAUNCH_VY: 44,
+  JUMP_PAD_MOMENTUM_BOOST: 1.5,
+  PORTAL_ROLL_MS: 10000,
+  PORTAL_CHANCE: 0,
+  PORTAL_LIFETIME: 10,
+  PORTAL_RADIUS: 2.5,
+  ANCHOR_LIFETIME: 30000,
+  RECALL_COST: 15,
+
+  JUMP_SPEED: 12.8,          // ~1.6–1.7u peak (feels like CS)
+  GRAVITY: 42,               // snappy landing
+  SUPER_JUMP_SPEED: 44,
+  SUPER_JUMP_COST: 20,
+  DMG_SINGLE: 20,
+  SUPER_MULT: 3,
+  SHIELD_COST: 80,
+  SHIELD_DURATION: 10000,
+  RECONNECT_GRACE_MS: 15000,
 } as const
 
 export const CHASSIS = {
