@@ -425,7 +425,7 @@ const reprintPercent = computed(() => {
       </div>      <!-- Nanite Census / Hull Bar -->
       <div class="hull-container">
         <div class="hull-header">
-          <span class="hull-title">RX-11 NANITE CENSUS</span>
+          <span class="hull-title">PLAYER HEALTH</span>
           <span v-if="regenCooldownRemaining > 0" class="hull-regen-badge">
             REGEN IN {{ regenCooldownRemaining.toFixed(1) }}s
           </span>
@@ -606,6 +606,7 @@ const reprintPercent = computed(() => {
   transition: box-shadow 0.15s ease;
   user-select: none;
 }
+.actions-panel { display: none; }
 
 .arena-minimap {
   position: absolute;

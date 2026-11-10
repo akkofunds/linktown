@@ -82,8 +82,8 @@ const copyInvite = async () => {
       </div>
 
       <section class="hero">
-        <h2>Drop into Linktown.</h2>
-        <p>10-minute trials. Hull is ammo. Only your Atma Core sets you apart.</p>
+        <h2>Linktown School Arena</h2>
+        <p>Large, flat 1.2 km arena. One Glock 19, unlimited bhop, and live multiplayer.</p>
       </section>
 
       <section class="block">
@@ -129,7 +129,7 @@ const copyInvite = async () => {
           {{ isConnecting ? 'Working…' : 'Play solo' }}
         </button>
         <p v-if="!callsignValid" class="hint">Enter a callsign (min 2 characters) to play.</p>
-        <p v-else class="hint">Instant match against bots. <kbd>Enter</kbd> to start.</p>
+        <p v-else class="hint">Solo practice (no bots), or host a room and invite friends. <kbd>Enter</kbd> to start.</p>
 
         <div class="row split">
           <button class="secondary" :disabled="!callsignValid || isConnecting" @click="emit('createPeerRoom')">
