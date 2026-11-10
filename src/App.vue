@@ -65,6 +65,12 @@ let dirUnsub: (() => void) | null = null
 
 const announceHostedRoom = () => {
   if (!directory || currentMatchMode !== 'host' || !currentRoomCode.value) return
+  // Only list rooms after PeerJS confirms its ID is registered. Publishing
+  // earlier lets friends click a room that cannot accept joins yet.
+  if (!peerHost?.isOpen) {
+    directory.unpublish()
+    return
+  }
   directory.publish({
     code: currentRoomCode.value,
     name: `${callsign.value}'s trial`,
@@ -349,10 +355,12 @@ const createPeerRoom = async () => {
     },
     (roomCode) => {
       console.log(`[App] Host room ${roomCode} ready on PeerJS Cloud`)
+      announceHostedRoom()
     },
     (err) => {
       console.error('[App] PeerJS Host error:', err)
       p2pStatus.value = 'HOST ERROR'
+      withdrawHostedRoom()
     }
   )
 
@@ -393,7 +401,8 @@ const joinPeerRoom = (code: string) => {
       console.error(`[App] PeerJS connection error:`, err)
       p2pStatus.value = 'CONNECTION ERROR'
       isConnecting.value = false
-      alert(`Could not connect to room "${roomCode}". Make sure the host has started the match!`)
+      const reason = err?.type || err?.message || 'unknown network error'
+      alert(`Could not connect to room "${roomCode}" (${reason}). Check that the host is in the match and try again.`)
     }
   )
 }
