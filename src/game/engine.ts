@@ -25,30 +25,33 @@ export interface GameCallbacks {
   onMatchEnd: (results: MatchResults) => void
 }
 
+/** Feet sit this far above groundHeight (was 1.6 → floating) */
+const FOOT_OFFSET = 0.05
+
 /** Balanced, unobstructed spawn locations (fallback) */
 export const ARENA_SPAWNS: Array<{ x: number; y: number; z: number; yaw: number }> = [
-  { x: 0, y: 1.6, z: 35, yaw: Math.PI },
-  { x: 0, y: 1.6, z: 55, yaw: 0 },
-  { x: 2.5, y: 1.6, z: 65, yaw: 0 },
-  { x: -2.5, y: 1.6, z: 65, yaw: 0 },
-  { x: 2.5, y: 1.6, z: 45, yaw: 0 },
-  { x: -2.5, y: 1.6, z: 45, yaw: Math.PI },
-  { x: 0, y: 1.6, z: -35, yaw: 0 },
-  { x: 0, y: 1.6, z: -55, yaw: Math.PI },
-  { x: 2.5, y: 1.6, z: -65, yaw: Math.PI },
-  { x: -2.5, y: 1.6, z: -65, yaw: Math.PI },
-  { x: 2.5, y: 1.6, z: -45, yaw: Math.PI },
-  { x: -2.5, y: 1.6, z: -45, yaw: 0 }
+  { x: 0, y: FOOT_OFFSET, z: 35, yaw: Math.PI },
+  { x: 0, y: FOOT_OFFSET, z: 55, yaw: 0 },
+  { x: 2.5, y: FOOT_OFFSET, z: 65, yaw: 0 },
+  { x: -2.5, y: FOOT_OFFSET, z: 65, yaw: 0 },
+  { x: 2.5, y: FOOT_OFFSET, z: 45, yaw: 0 },
+  { x: -2.5, y: FOOT_OFFSET, z: 45, yaw: Math.PI },
+  { x: 0, y: FOOT_OFFSET, z: -35, yaw: 0 },
+  { x: 0, y: FOOT_OFFSET, z: -55, yaw: Math.PI },
+  { x: 2.5, y: FOOT_OFFSET, z: -65, yaw: Math.PI },
+  { x: -2.5, y: FOOT_OFFSET, z: -65, yaw: Math.PI },
+  { x: 2.5, y: FOOT_OFFSET, z: -45, yaw: Math.PI },
+  { x: -2.5, y: FOOT_OFFSET, z: -45, yaw: 0 }
 ]
 
 export function getRandomSpawn(map: MapData): { x: number; y: number; z: number; yaw: number } {
   if (!map || !map.spawns || map.spawns.length === 0) {
-    return { x: 0, y: 1.6, z: 0, yaw: Math.random() * Math.PI * 2 }
+    return { x: 0, y: FOOT_OFFSET, z: 0, yaw: Math.random() * Math.PI * 2 }
   }
   const s = map.spawns[Math.floor(Math.random() * map.spawns.length)]
   return {
     x: s.x,
-    y: s.y,
+    y: FOOT_OFFSET,
     z: s.z,
     yaw: Math.random() * Math.PI * 2
   }
@@ -1223,12 +1226,17 @@ export class GameEngine {
   }
 
   private isOnGround(p: PlayerState): boolean {
-    if (p.y <= groundHeight(p.x, p.z, this.map.seed) + 1.65) return true
+    if (p.y <= groundHeight(p.x, p.z, this.map.seed) + FOOT_OFFSET + 0.12) return true
     for (const box of this.nearbyBoxes(p.x, p.z)) {
       const bTop = box.y + box.h / 2
       const hw = box.w / 2 + CFG.PLAYER_RADIUS
       const hd = box.d / 2 + CFG.PLAYER_RADIUS
-      if (Math.abs(p.y - bTop) < 0.15 && Math.abs(p.x - box.x) < hw && Math.abs(p.z - box.z) < hd) {
+      if (
+        p.y <= bTop + 0.12 &&
+        p.y >= bTop - 0.3 &&
+        Math.abs(p.x - box.x) < hw &&
+        Math.abs(p.z - box.z) < hd
+      ) {
         return true
       }
     }
@@ -1246,7 +1254,7 @@ export class GameEngine {
     if (!Number.isFinite(this.localPlayer.x)) this.localPlayer.x = spawn.x
     if (!Number.isFinite(this.localPlayer.z)) this.localPlayer.z = spawn.z
     if (!Number.isFinite(this.localPlayer.y)) {
-      this.localPlayer.y = groundHeight(this.localPlayer.x, this.localPlayer.z, this.map.seed) + 1.6
+      this.localPlayer.y = groundHeight(this.localPlayer.x, this.localPlayer.z, this.map.seed) + FOOT_OFFSET
     }
     if (!Number.isFinite(this.localPlayer.yaw)) this.localPlayer.yaw = spawn.yaw
     if (!Number.isFinite(this.localPlayer.pitch)) this.localPlayer.pitch = 0
@@ -1261,78 +1269,95 @@ export class GameEngine {
         this.setCrouching(false)
       }
 
-      // WASD movement calculation (skipped entirely while crouched)
-      let mx = 0, mz = 0
+      // ── CS / Valorant style movement ────────────────────────────────
+      let wishX = 0, wishZ = 0
       const yaw = this.localPlayer.yaw
       if (!this.localPlayer.crouching) {
-        if (this.keys['w']) { mx -= Math.sin(yaw); mz -= Math.cos(yaw) }
-        if (this.keys['s']) { mx += Math.sin(yaw); mz += Math.cos(yaw) }
-        if (this.keys['a']) { mx += Math.sin(yaw - Math.PI / 2); mz += Math.cos(yaw - Math.PI / 2) }
-        if (this.keys['d']) { mx += Math.sin(yaw + Math.PI / 2); mz += Math.cos(yaw + Math.PI / 2) }
+        if (this.keys['w']) { wishX -= Math.sin(yaw); wishZ -= Math.cos(yaw) }
+        if (this.keys['s']) { wishX += Math.sin(yaw); wishZ += Math.cos(yaw) }
+        if (this.keys['a']) { wishX += Math.sin(yaw - Math.PI / 2); wishZ += Math.cos(yaw - Math.PI / 2) }
+        if (this.keys['d']) { wishX += Math.sin(yaw + Math.PI / 2); wishZ += Math.cos(yaw + Math.PI / 2) }
       }
 
-      const len = Math.hypot(mx, mz)
+      const wishLen = Math.hypot(wishX, wishZ)
+      if (wishLen > 0) {
+        wishX /= wishLen
+        wishZ /= wishLen
+      }
+
       const grounded = this.isOnGround(this.localPlayer)
-      const isRunning = len > 0
-      const hasForwardInput = this.keys['w'] || this.keys['s']
-      const hasSideInput = this.keys['a'] || this.keys['d']
-      if (!grounded && this.keys['space'] && hasForwardInput && hasSideInput && Math.hypot(this.moveVx, this.moveVz) > CFG.RUN_SPEED * 0.4) {
+      let maxSpeed = CFG.RUN_SPEED
+      if (this.localPlayer.superActive) maxSpeed *= 2.0
+      const nowRage = Date.now()
+      if (this.localPlayer.character === 'denja' && nowRage - this.localPlayer.lastAbilityAt < 8000) {
+        maxSpeed *= 2.0
+      }
+      if (nowRage < this.padBoostUntil && !grounded) maxSpeed *= CFG.JUMP_PAD_MOMENTUM_BOOST
+
+      // Track air-strafe for bhop boost
+      if (!grounded && this.keys['space'] && wishLen > 0 && Math.hypot(this.moveVx, this.moveVz) > CFG.RUN_SPEED * 0.35) {
         this.bhopStrafedThisAir = true
       }
-      let speed = CFG.RUN_SPEED
 
-      if (this.localPlayer.superActive) {
-        speed *= 2.0
-      }
-      const rageNow = Date.now()
-      if (this.localPlayer.character === 'denja' && rageNow - this.localPlayer.lastAbilityAt < 8000) {
-        speed *= 2.0
-      }
-      // Jump-pad air boost: extra steering speed while airborne after a launch
-      if (rageNow < this.padBoostUntil && !this.isOnGround(this.localPlayer)) {
-        speed *= CFG.JUMP_PAD_MOMENTUM_BOOST
+      if (grounded) {
+        // Ground: high friction + strong accel → counter-strafe works
+        if (wishLen === 0) {
+          const drop = Math.max(0, 1 - (CFG as any).GROUND_FRICTION * dt)
+          this.moveVx *= drop
+          this.moveVz *= drop
+        } else {
+          const currentSpeed = this.moveVx * wishX + this.moveVz * wishZ
+          const add = Math.max(0, maxSpeed - currentSpeed)
+          const accelAmount = Math.min(add, CFG.GROUND_ACCEL * dt)
+          this.moveVx += wishX * accelAmount
+          this.moveVz += wishZ * accelAmount
+        }
+      } else {
+        // Air: Source-style air accel (gains speed when turning into velocity)
+        if (wishLen > 0) {
+          const currentSpeed = this.moveVx * wishX + this.moveVz * wishZ
+          const add = Math.max(0, maxSpeed - currentSpeed)
+          const accelAmount = Math.min(add, CFG.AIR_ACCEL * dt)
+          this.moveVx += wishX * accelAmount
+          this.moveVz += wishZ * accelAmount
+        }
+        // Soft air speed ceiling
+        const airSpd = Math.hypot(this.moveVx, this.moveVz)
+        const airMax = (CFG as any).AIR_MAX_SPEED ?? 280
+        if (airSpd > airMax) {
+          const s = airMax / airSpd
+          this.moveVx *= s
+          this.moveVz *= s
+        }
       }
 
-      if (len > 0) {
-        const wishX = mx / len
-        const wishZ = mz / len
-        const accel = grounded ? CFG.GROUND_ACCEL : (this.keys['space'] ? CFG.AIR_ACCEL : 0)
-        const alongWish = this.moveVx * wishX + this.moveVz * wishZ
-        const addSpeed = Math.max(0, speed - alongWish)
-        const accelStep = Math.min(addSpeed, accel * dt)
-        this.moveVx += wishX * accelStep
-        this.moveVz += wishZ * accelStep
-      }
-      if (!grounded) {
-        const airDecay = Math.max(0, 1 - CFG.AIR_FRICTION * dt)
-        this.moveVx *= airDecay
-        this.moveVz *= airDecay
-      } else if (len === 0) {
-        const groundDecay = Math.max(0, 1 - CFG.GROUND_FRICTION * dt)
-        this.moveVx *= groundDecay
-        this.moveVz *= groundDecay
-      }
-
-      if (len > 0 || Math.hypot(this.moveVx, this.moveVz) > 0.15) {
-        mx = this.moveVx * dt
-        mz = this.moveVz * dt
-        const col = resolveCollision(this.localPlayer.x + mx, this.localPlayer.y, this.localPlayer.z + mz, this.map, this.nearbyBoxes)
+      // Integrate + collide
+      const mx = this.moveVx * dt
+      const mz = this.moveVz * dt
+      if (Math.abs(mx) > 1e-6 || Math.abs(mz) > 1e-6) {
+        const col = resolveCollision(
+          this.localPlayer.x + mx,
+          this.localPlayer.y,
+          this.localPlayer.z + mz,
+          this.map,
+          this.nearbyBoxes
+        )
+        // Kill velocity component that hit a wall
         if (Math.abs(col.x - (this.localPlayer.x + mx)) > 0.001) this.moveVx = 0
         if (Math.abs(col.z - (this.localPlayer.z + mz)) > 0.001) this.moveVz = 0
         this.localPlayer.x = col.x
         this.localPlayer.z = col.z
-        if (len > 0) this.lastMoveTime = Date.now()
-        if (Math.hypot(this.moveVx, this.moveVz) > 1) sound.startFootsteps(isRunning)
+        if (wishLen > 0) this.lastMoveTime = Date.now()
+        if (Math.hypot(this.moveVx, this.moveVz) > 2) sound.startFootsteps(true)
         else sound.stopFootsteps()
       } else {
         sound.stopFootsteps()
-        // Auto-crouch after 5s of no WASD movement
         if (!this.localPlayer.crouching && Date.now() - this.lastMoveTime > CFG.AUTO_CROUCH_MS) {
           this.setCrouching(true)
         }
       }
 
-      // Vertical gravity & ground detection
+      // Vertical gravity & ground
       this.vy -= CFG.GRAVITY * dt
       this.localPlayer.y += this.vy * dt
 
@@ -1341,8 +1366,12 @@ export class GameEngine {
           const bTop = box.y + box.h / 2
           const hw = box.w / 2 + CFG.PLAYER_RADIUS
           const hd = box.d / 2 + CFG.PLAYER_RADIUS
-          if (this.localPlayer.y <= bTop && this.localPlayer.y >= bTop - 0.2 &&
-              Math.abs(this.localPlayer.x - box.x) < hw && Math.abs(this.localPlayer.z - box.z) < hd) {
+          if (
+            this.localPlayer.y <= bTop &&
+            this.localPlayer.y >= bTop - 0.25 &&
+            Math.abs(this.localPlayer.x - box.x) < hw &&
+            Math.abs(this.localPlayer.z - box.z) < hd
+          ) {
             this.localPlayer.y = bTop
             this.vy = 0
             break
@@ -1350,13 +1379,17 @@ export class GameEngine {
         }
       }
 
-      const groundBase = groundHeight(this.localPlayer.x, this.localPlayer.z, this.map.seed) + 1.6
+      // Feet on the floor (no more floating)
+      const groundBase = groundHeight(this.localPlayer.x, this.localPlayer.z, this.map.seed) + FOOT_OFFSET
       if (this.localPlayer.y <= groundBase) {
         this.localPlayer.y = groundBase
         this.vy = 0
       }
-      // Hold Space to bunny-hop as soon as the chassis lands; there is no hop limit.
-      if (this.keys['space'] && this.isOnGround(this.localPlayer)) this.triggerJump(true)
+
+      // Auto bunny-hop while holding space
+      if (this.keys['space'] && this.isOnGround(this.localPlayer)) {
+        this.triggerJump(true)
+      }
 
       // Dynamic Jump Pad Trigger Check
       const now = Date.now()
@@ -1415,7 +1448,7 @@ export class GameEngine {
           back: !!this.keys['s'],
           left: !!this.keys['a'],
           right: !!this.keys['d'],
-          run: isRunning,
+          run: wishLen > 0,
           yaw: this.localPlayer.yaw,
           pitch: this.localPlayer.pitch,
           x: this.localPlayer.x,
@@ -1506,7 +1539,7 @@ export class GameEngine {
       ammo: this.ammo,
       reloading: this.reloadingUntil > Date.now(),
       speed: Math.round(Math.hypot(this.moveVx, this.moveVz)),
-      airborne: this.localPlayer.y > 1.65,
+      airborne: this.localPlayer.y > FOOT_OFFSET + 0.15,
       nearestPilot
     }
 
@@ -1821,4 +1854,3 @@ export class GameEngine {
     this.client?.destroy()
   }
 }
-
