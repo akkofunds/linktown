@@ -268,8 +268,8 @@ const reprintPercent = computed(() => {
     <div class="speed-monitor" aria-label="Movement speed">
       <div class="speed-monitor-heading"><span>MOVE SPEED</span><span>{{ telemetry?.airborne ? 'AIR' : 'GROUND' }}</span></div>
       <div class="speed-monitor-value">{{ Math.round(telemetry?.speed ?? 0) }}<small>u/s</small></div>
-      <div class="speed-monitor-track"><div class="speed-monitor-fill" :style="{ width: `${Math.min(100, ((telemetry?.speed ?? 0) / CFG.BHOP_MAX_SPEED) * 100)}%` }" /></div>
-      <small class="speed-monitor-cap">BHOP · {{ CFG.BHOP_MAX_SPEED }} CAP</small>
+      <div class="speed-monitor-track"><div class="speed-monitor-fill" :style="{ width: `${Math.min(100, ((telemetry?.speed ?? 0) / CFG.BHOP_SPEED_SCALE) * 100)}%` }" /></div>
+      <small class="speed-monitor-cap">BHOP SPEED · {{ CFG.BHOP_SPEED_SCALE }} SCALE</small>
     </div>
     <div class="glock-readout">
       <span>GLOCK 19</span>
