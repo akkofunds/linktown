@@ -272,6 +272,8 @@ export interface TelemetryData {
   tickRate: number
   ammo?: number
   reloading?: boolean
+  speed?: number
+  airborne?: boolean
   nearestPilot?: {
     name: string
     distance: number
